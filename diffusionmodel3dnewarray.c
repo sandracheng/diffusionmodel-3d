@@ -120,7 +120,7 @@ int diffusionmodel3dnewarray() {
  const int scndLayerCount = divs-2; //counter for the second outside layer
  int n,b,v,p,c,s,f,g; //just counters.
 
- TCanvas *c1 = new TCanvas;
+ TCanvas *c1 = new TCanvas;           
  Int_t nBins = 1000;
  Double_t lowlim = -1500;
  Double_t uplim = 1500;
@@ -137,80 +137,78 @@ int diffusionmodel3dnewarray() {
  //need to reset the concentrations for the 1st and 2nd layers always for
  //both the current and update array. 1st layer=0, 2nd layer=maxConc.
  //all of inside starts at conc=0   
- for (timePassed=1; timePassed<totTime; timePassed++) {     
+ for (timePassed=1; timePassed<totTime; timePassed++) { 
   for (elemCount=0; elemCount<divs*divs*divs; elemCount++) {                     
    //1st layer aka the cube faces
    if (elemCount <= divs*divs-1 || elemCount >= divs*divs*(divs-1)) {
-    elemConc[elemCount]= 47; //for front and back faces   
-    elemConcMaster[elemCount+(timePassed-1)*divs*divs*divs] = 47;
+    elemConc[elemCount]= 47.3; //for front and back faces   
+    elemConcMaster[elemCount+(timePassed-1)*pow(divs,3)]=47.3;
    } 
                      
    for (j=0; j<divs; j++) {    
     for (k=0; k<divs*divs; k++) {
      if (k<divs) {
-      elemConc[j*divs*divs+k*divs]= 47;  //for left face
-      elemConcMaster[j*divs*divs+k*divs+(timePassed-1)*divs*divs*divs]= 47;
+      elemConc[j*divs*divs+k*divs]= 47.3;  //for left face
+      elemConcMaster[j*divs*divs+k*divs+(timePassed-1)*pow(divs,3)]= 47.3;
 
-      elemConc[j*divs*divs+k*divs+divs-1] = 47;  //for right face
-      elemConcMaster[j*divs*divs+k*divs+divs-1+(timePassed-\
-       1)*divs*divs*divs]=47;
+      elemConc[j*divs*divs+k*divs+divs-1]= 47.3;  //for right face
+      elemConcMaster[j*divs*divs+k*divs+divs-1+(timePassed-1)*pow(divs,3)]=47.3;
 
-      elemConc[j*divs*divs+k] = 47; //for bottom face
-      elemConcMaster[j*divs*divs+k+(timePassed-1)*divs*divs*divs] = 47;
+      elemConc[j*divs*divs+k] = 47.3; //for bottom face
+      elemConcMaster[j*divs*divs+k+(timePassed-1)*pow(divs,3)]=47.3;
      }
      else if (k >= divs*(divs-1)) {
-      elemConc[j*divs*divs+k]= 47; //for top face
-      elemConcMaster[j*divs*divs+k+(timePassed-1)*divs*divs*divs] = 47;
+      elemConc[j*divs*divs+k]= 47.3; //for top face
+      elemConcMaster[j*divs*divs+k+(timePassed-1)*pow(divs,3)]=47.3;
      }
     }
    }
-  
   //for the 2nd layer.           
-   for (z=0; z<scndLayerCount;z++){
-    for (y=0; y<scndLayerCount;y++){
-     elemConc[(divs*(divs+z+1)+(y+1))+(timePassed-1)*divs*divs*divs] = maxConc;   //2nd layer front face                              
-     elemConcMaster[(divs*(divs+z+1)+(y+1))+(timePassed-1)*divs*divs*divs] = maxConc;
+   for (z=0; z<scndLayerCount;z++) {
+    for (y=0; y<scndLayerCount;y++) {
+     elemConc[divs*(divs+z+1)+y+1+(timePassed-1)*pow(divs,3)]=maxConc;   //2nd layer front face                              
+     elemConcMaster[divs*(divs+z+1)+y+1+(timePassed-1)*pow(divs,3)]=maxConc;
 
      elemConc[divs*(divs*scndLayerCount+z+1)+y+1]= maxConc;   //2nd layer back face                              
-     elemConcMaster[divs*(divs*scndLayerCount+z+1)+y+1+(timePassed-1)*divs*divs*divs]= maxConc;
+     elemConcMaster[divs*(divs*scndLayerCount+z+1)+y+1+(timePassed-1)*pow(divs,3)]= maxConc;
 
-     if (z==0 && y==0){
-      for (n=0; n<scndLayerCount; n++){
-       for (b=0; b<scndLayerCount; b++){
-        int n_r =  n*pow(divs,2);
+     if (z==0 && y==0) {
+      for (n=0; n<scndLayerCount; n++) {
+       for (b=0; b<scndLayerCount; b++) {
+        int n_r = n*pow(divs,2);
 
         elemConc[divs*(divs+1)+1+n_r+divs*b]= maxConc; //2nd layer left face
-        elemConcMaster[divs*(divs+1)+1+n_r+divs*b+(timePassed-1)*divs*divs*divs]=maxConc; 
+        elemConcMaster[divs*(divs+1)+1+n_r+divs*b+(timePassed-1)*pow(divs,3)]=maxConc; 
        }
       }
       for (v=0;v<scndLayerCount;v++){
        for (p=0; p<scndLayerCount;p++){
-        int p_r =  p*pow(divs,2);
+        int p_r=p*pow(divs,2);
 
-        elemConc[divs*(divs+1)+1+v+p_r] = maxConc; //2nd layer bottom face
-        elemConcMaster[divs*(divs+1)+1+v+p_r+(timePassed-1)*divs*divs*divs]=maxConc = maxConc; 
+        elemConc[divs*(divs+1)+1+v+p_r]=maxConc; //2nd layer bottom face
+        elemConcMaster[divs*(divs+1)+1+v+p_r+(timePassed-1)*pow(divs,3)]= maxConc; 
        }
       }
      }//end bracket for z==0 and y==0
 
-     if (z==0 && y==(scndLayerCount-1)){
-      for (c=0; c<scndLayerCount; c++){
-       for (s=0; s<scndLayerCount; s++){
-        int c_r =  c*pow(divs,2)+divs*s;
+     if (z==0 && y==(scndLayerCount-1)) {
+      for (c=0; c<scndLayerCount; c++) {
+       for (s=0; s<scndLayerCount; s++) {
+        int c_r = c*pow(divs,2)+divs*s;
 
         elemConc[divs*(divs+1)+y+1+c_r]= maxConc; //2nd layer right face
-        elemConcMaster[divs*(divs+1)+y+1+c_r+(timePassed-1)*divs*divs*divs]= maxConc; 
+        elemConcMaster[divs*(divs+1)+y+1+c_r+(timePassed-1)*pow(divs,3)]=maxConc; 
        }    
       }
      }
 
-     if (z==(scndLayerCount-1) && y==0){
-      for (int f=0;f<z;f++){
-       for (int g=0; g<scndLayerCount;g++){
+     if (z==(scndLayerCount-1) && y==0) {
+      for (f=0;f<z;f++) {
+       for (g=0; g<scndLayerCount;g++) {
         int g_r=  g*pow(divs,2);
 
         elemConc[divs*(divs+z+1)+1+f+g_r] = maxConc; //2nd layer top face
-        elemConcMaster[divs*(divs+z+1)+1+f+g_r+(timePassed-1)*divs*divs*divs] = maxConc; 
+        elemConcMaster[divs*(divs+z+1)+1+f+g_r+(timePassed-1)*pow(divs,3)]=maxConc; 
        }
       }
      } //end bracket for z==scndLayerCount-1 and y==0
@@ -223,15 +221,12 @@ int diffusionmodel3dnewarray() {
   }  //end bracket for first elemCount                                                          
   
   for (elemCount=0; elemCount<divs*divs*divs; elemCount++) {                  
-   moleculeInCube = elemConc[elemCount]/(cSize*cSize*cSize); 
-   printf("elem:%d; elem conc: %f\n", elemCount, elemConc[elemCount]); // works!           
- 
-   //make random walking part only for not a boundary cube for all time
-   //random walk need to occur for the boundary parts for t=1
-/*   if (elemConcMaster[elemCount]!=maxConc) {
-    moleculeInCube = elemConc[elemCount]*(cSize*cSize*cSize); 
-                                                                                    
-    for (int moleculeCount=1; moleculeCount<= moleculeInCube; moleculeCount++) {    */
+ //  printf("elem:%d; elem conc: %f\n", elemCount, elemConc[elemCount]); // works!           
+ //make random walk occur for all layers; just reset the 1st and 2nd every timestep
+   if (elemConcMaster[elemCount]!=47) {                                                                                
+    moleculeInCube = elemConc[elemCount]*pow(cSize,3); 
+
+    for (int moleculeCount=1; moleculeCount<= moleculeInCube; moleculeCount++){ 
  /*need to know position of the 26 surrounding cube elements. will name it 
    by the number scheme as above, with elements are labelled 0 to 26.
    the central cube number is 13                   
@@ -249,7 +244,7 @@ int diffusionmodel3dnewarray() {
    cube3= elemConc[elemCount-divs*divs-1];
    cube5= elemConc[elemCount-divs*divs+1];
    cube6= elemConc[elemCount-divs*divs-1+divs];  
-   cube7= elemConc[elemCount-divs*divs+divs];
+   cube7= elemConc[elemCount-divs*divs+divs];           
    cube8= elemConc[elemCount-divs*divs+1+divs];
    cube9= elemConc[elemCount-1-divs];   
    cube11= elemConc[elemCount+1-divs];
@@ -264,7 +259,7 @@ int diffusionmodel3dnewarray() {
    cube25= elemConc[elemCount+divs+divs*divs];
    cube26= elemConc[elemCount+divs+1+divs*divs];                           */  
 
- /*   int r = rand() % 27; //random number between 0 and 26; 27 possibilities 
+    int r = rand() % 27; //random number between 0 and 26; 27 possibilities 
     //for each molecule to move into one of the adjacent 26 cubes or stay.
     //all if statements match the random number to the cube it moves to
 
@@ -272,299 +267,268 @@ int diffusionmodel3dnewarray() {
      //new conc of cube 0 relative to the elem=previous conc+(1molecule/totVol)
      //new conc of the elem=previous conc-(1molecule/totVol).
      //update master array accordingly for both.
-      elemConc[elemCount-divs*divs-1-divs]= elemConc[elemCount-divs*divs-1-\
-       divs]+1/(cSize*cSize*cSize); 
-      elemConcMaster[elemCount-divs*divs-1-divs+(timePassed-1)*divs*divs*divs]\
-       =elemConc[elemCount-divs*divs-1-divs];           
+      elemConc[elemCount-divs*divs-1-divs]= elemConc[elemCount-divs*divs-1-
+      \ divs]+1/(pow(cSize,3)); 
+      elemConcMaster[elemCount-divs*divs-1-divs+(timePassed-1)*pow(divs,3)]
+      \ =elemConc[elemCount-divs*divs-1-divs];           
       
-      elemConc[elemCount]= elemConc[elemCount]-1/(cSize*cSize*cSize);
-      elemConcMaster[elemCount+(timePassed-1)*divs*divs*divs]=\
-       elemConc[elemCount];
+      elemConc[elemCount]= elemConc[elemCount]-1/(pow(cSize,3));
+      elemConcMaster[elemCount+(timePassed-1)*pow(divs,3)]=elemConc[elemCount];
      }                                                   
      else if (r==1) {                                    
-      elemConc[elemCount-divs*divs-divs] = elemConc[elemCount-divs*divs-divs]\
-       +1/(cSize*cSize*cSize);
-      elemConcMaster[elemCount-divs*divs-divs+(timePassed-1)*divs*divs*divs]\
-       =elemConc[elemCount-divs*divs-divs];  
+      elemConc[elemCount-divs*divs-divs]=elemConc[elemCount-divs*divs-
+      \ divs] +1/(pow(cSize,3));
+      elemConcMaster[elemCount-divs*divs-divs+(timePassed-1)*(pow(divs,3))]=
+      \ elemConc[elemCount-divs*divs-divs];  
          
-      elemConc[elemCount] = elemConc[elemCount]-1/(cSize*cSize*cSize);
-      elemConcMaster[elemCount+(timePassed-1)*divs*divs*divs]\
-       =elemConc[elemCount-divs*divs-divs];  
+      elemConc[elemCount]=elemConc[elemCount]-1/(pow(cSize,3));
+      elemConcMaster[elemCount+(timePassed-1)*pow(divs,3)]=
+      \ elemConc[elemCount-divs*divs-divs];  
      }                 
      else if (r==2) {                                
-      elemConc[elemCount-divs*divs-divs+1]=elemConc[elemCount-divs*divs-divs+1]\
-       +1/(cSize*cSize*cSize);
-      elemConcMaster[elemCount-divs*divs-divs+1+(timePassed-1)*divs*divs*divs]\
-       =elemConc[elemCount-divs*divs-divs+1];
+      elemConc[elemCount-divs*divs-divs+1]=elemConc[elemCount-divs*divs-divs+
+      \ 1]+ 1/(pow(cSize,3));
+      elemConcMaster[elemCount-divs*divs-divs+1+(timePassed-1)*pow(divs,3)]=
+      \ elemConc[elemCount-divs*divs-divs+1];
  
-      elemConc[elemCount]= elemConc[elemCount]-1/(cSize*cSize*cSize);
-      elemConcMaster[elemCount+(timePassed-1)*divs*divs*divs]\
-       =elemConc[elemCount];
+      elemConc[elemCount]= elemConc[elemCount]-1/pow(cSize,3);
+      elemConcMaster[elemCount+(timePassed-1)*(pow(divs,3))]=
+      \ elemConc[elemCount];
      }    
      else if (r==3) {                                    
-     elemConc[elemCount-divs*divs-1] = elemConc[elemCount-divs*divs-1]\
-      +1/(cSize*cSize*cSize);
-     elemConcMaster[elemCount-divs*divs-1+(timePassed-1)*divs*divs*divs]\
-      =elemConc[elemCount-divs*divs-1];
+     elemConc[elemCount-divs*divs-1]=elemConc[elemCount-divs*divs-1]+
+     \ 1/(pow(cSize,3));
+     elemConcMaster[elemCount-divs*divs-1+(timePassed-1)*pow(divs,3)]=
+     \ elemConc[elemCount-divs*divs-1];                                
 
-     elemConc[elemCount] = elemConc[elemCount]-1/(cSize*cSize*cSize);
-     elemConcMaster[elemCount+(timePassed-1)*divs*divs*divs]\
-       =elemConc[elemCount];
+     elemConc[elemCount]=elemConc[elemCount]-1/pow(cSize,3);
+     elemConcMaster[elemCount+(timePassed-1)*pow(divs,3)]=
+     \ elemConc[elemCount];
      }
      else if (r==4) {                                    
-     elemConc[elemCount-divs*divs] = elemConc[elemCount-divs*divs]\
-      +1/(cSize*cSize*cSize);
-     elemConcMaster[elemCount-divs*divs+(timePassed-1)*divs*divs*divs]\
-       =elemConc[elemCount-divs*divs];
+     elemConc[elemCount-divs*divs]=elemConc[elemCount-divs*divs]
+     \ +1/(pow(cSize,3));
+     elemConcMaster[elemCount-divs*divs+(timePassed-1)*pow(divs,3)]
+     \ =elemConc[elemCount-divs*divs];
 
-     elemConc[elemCount] = elemConc[elemCount]-1/(cSize*cSize*cSize);
-     elemConcMaster[elemCount+(timePassed-1)*divs*divs*divs]\
-       =elemConc[elemCount];
+     elemConc[elemCount]=elemConc[elemCount]-1/pow(cSize,3);
+     elemConcMaster[elemCount+(timePassed-1)*pow(divs,3)]=
+     \ elemConc[elemCount];
      }
      else if (r==5) {                                    
-      elemConc[elemCount-divs*divs+1] = elemConc[elemCount-divs*divs+1]\
-       +1/(cSize*cSize*cSize); 
-      elemConcMaster[elemCount-divs*divs+1+(timePassed-1)*divs*divs*divs]\
-       =elemConc[elemCount-divs*divs+1];
+      elemConc[elemCount-divs*divs+1]=elemConc[elemCount-divs*divs+1]+
+      \ 1/pow(cSize,3); 
+      elemConcMaster[elemCount-divs*divs+1+(timePassed-1)*pow(divs,3)]
+      \ =elemConc[elemCount-divs*divs+1];
 
-      elemConc[elemCount] = elemConc[elemCount]-1/(cSize*cSize*cSize);
-      elemConcMaster[elemCount+(timePassed-1)*divs*divs*divs]\
-       =elemConc[elemCount];
+      elemConc[elemCount]=elemConc[elemCount]-1/pow(cSize,3);
+      elemConcMaster[elemCount+(timePassed-1)*pow(divs,3)]=elemConc[elemCount];
      }
      else if (r==6) {                                    
-      elemConc[elemCount-divs*divs-1+divs] = elemConc[elemCount-divs*divs-1+divs]\
-       +1/(cSize*cSize*cSize);
-      elemConcMaster[elemCount-divs*divs+1+(timePassed-1)*divs*divs*divs]\
-       =elemConc[elemCount-divs*divs+1];
-
-      elemConc[elemCount]=elemConc[elemCount]-1/(cSize*cSize*cSize);
-      elemConcMaster[elemCount-divs*divs+1+(timePassed-1)*divs*divs*divs]\
-       =elemConc[elemCount-divs*divs+1];
+      elemConc[elemCount-divs*divs-1+divs] = elemConc[elemCount-divs*divs-
+      \ 1+divs]+1/pow(cSize,3);
+      elemConcMaster[elemCount-divs*divs+1+(timePassed-1)*pow(divs,3)]=
+      \ elemConc[elemCount-divs*divs+1];
+       
+      elemConc[elemCount]=elemConc[elemCount]-1/pow(cSize,3);
+      elemConcMaster[elemCount-divs*divs+1+(timePassed-1)*pow(divs,3)]
+      \ =elemConc[elemCount-divs*divs+1];
      }
      else if (r==7) {                                    
-      elemConc[elemCount-divs]=elemConc[elemCount-divs]+1/(cSize*cSize*cSize);
-      elemConcMaster[elemCount-divs+(timePassed-1)*divs*divs*divs]\
-       =elemConc[elemCount-divs];
+      elemConc[elemCount-divs]=elemConc[elemCount-divs]+1/pow(cSize,3);
+      elemConcMaster[elemCount-divs+(timePassed-1)*pow(divs,3)]
+      \ =elemConc[elemCount-divs];
 
-      elemConc[elemCount]=elemConc[elemCount]-1/(cSize*cSize*cSize);
-      elemConcMaster[elemCount+(timePassed-1)*divs*divs*divs]\
-       =elemConc[elemCount];
+      elemConc[elemCount]=elemConc[elemCount]-1/pow(cSize,3);
+      elemConcMaster[elemCount+(timePassed-1)*pow(divs,3)]
+      \ =elemConc[elemCount];
      }
      else if (r==8) {                                    
-      elemConc[elemCount-divs*divs+1+divs] = elemConc[elemCount-divs*divs+1+divs]\
-       +1/(cSize*cSize*cSize);
-      elemConcMaster[elemCount-divs*divs+1+divs+(timePassed-1)*divs*divs*divs]\
-       =elemConc[elemCount-divs*divs+1+divs];
+      elemConc[elemCount-divs*divs+1+divs] = elemConc[elemCount-divs*divs+
+      \ 1+divs]+1/pow(cSize,3);
+      elemConcMaster[elemCount-divs*divs+1+divs+(timePassed-1)*pow(divs,3)]
+      \ =elemConc[elemCount-divs*divs+1+divs];
 
-      elemConc[elemCount] = elemConc[elemCount]-1/(cSize*cSize*cSize);
-      elemConcMaster[elemCount+(timePassed-1)*divs*divs*divs]\
-       =elemConc[elemCount];
+      elemConc[elemCount] = elemConc[elemCount]-1/pow(cSize,3);
+      elemConcMaster[elemCount+(timePassed-1)*pow(divs,3)]=elemConc[elemCount];
      }
      else if (r==9) {                                    
-      elemConc[elemCount-1-divs] = elemConc[elemCount-1-divs]\
-       +1/(cSize*cSize*cSize);
-      elemConcMaster[elemCount-divs-1+(timePassed-1)*divs*divs*divs]\
-       =elemConc[elemCount-divs-1];
+      elemConc[elemCount-1-divs] = elemConc[elemCount-1-divs]+1/pow(cSize,3);
+      elemConcMaster[elemCount-divs-1+(timePassed-1)*pow(divs,3)]
+      \ =elemConc[elemCount-divs-1];
 
-      elemConc[elemCount] = elemConc[elemCount]-1/(cSize*cSize*cSize);
-      elemConcMaster[elemCount+(timePassed-1)*divs*divs*divs]\
-       =elemConc[elemCount];
+      elemConc[elemCount] = elemConc[elemCount]-1/pow(cSize,3);
+      elemConcMaster[elemCount+(timePassed-1)*pow(divs,3)]=elemConc[elemCount];
      }                                            
      else if (r==10) {                                    
-      elemConc[elemCount-divs] = elemConc[elemCount-divs]\
-       +1/(cSize*cSize*cSize);
-      elemConcMaster[elemCount-divs+(timePassed-1)*divs*divs*divs]\
-       =elemConc[elemCount-divs];
+      elemConc[elemCount-divs]=elemConc[elemCount-divs]+1/pow(cSize,3);
+      elemConcMaster[elemCount-divs+(timePassed-1)*pow(divs,3)]
+      \ =elemConc[elemCount-divs];
 
-      elemConc[elemCount]=elemConc[elemCount]-1/(cSize*cSize*cSize);
-      elemConcMaster[elemCount+(timePassed-1)*divs*divs*divs]\
-       =elemConc[elemCount];
+      elemConc[elemCount]=elemConc[elemCount]-1/pow(cSize,3);
+      elemConcMaster[elemCount+(timePassed-1)*pow(divs,3)]=elemConc[elemCount];
      }
      else if (r==11) {                                    
-      elemConc[elemCount+1-divs] = elemConc[elemCount+1-divs]\
-       +1/(cSize*cSize*cSize);
-      elemConcMaster[elemCount-divs+1+(timePassed-1)*divs*divs*divs]\
-       =elemConc[elemCount-divs+1];
+      elemConc[elemCount+1-divs]=elemConc[elemCount+1-divs]+1/pow(cSize,3);
+      elemConcMaster[elemCount-divs+1+(timePassed-1)*pow(divs,3)]
+      \ =elemConc[elemCount-divs+1];
 
-      elemConc[elemCount] = elemConc[elemCount]-1/(cSize*cSize*cSize);
-      elemConcMaster[elemCount+(timePassed-1)*divs*divs*divs]\
-       =elemConc[elemCount];
+      elemConc[elemCount]=elemConc[elemCount]-1/pow(cSize,3);
+      elemConcMaster[elemCount+(timePassed-1)*pow(divs,3)]=elemConc[elemCount];
      }
      else if (r==12) {                                    
-      elemConc[elemCount-1] = elemConc[elemCount-1]\
-       +1/(cSize*cSize*cSize);
-      elemConcMaster[elemCount-1+(timePassed-1)*divs*divs*divs]\
-       =elemConc[elemCount-1];
+      elemConc[elemCount-1]=elemConc[elemCount-1]+1/pow(cSize,3);
+      elemConcMaster[elemCount-1+(timePassed-1)*pow(divs,3)]
+      \ =elemConc[elemCount-1];
 
-      elemConc[elemCount] = elemConc[elemCount]-1/(cSize*cSize*cSize);
-      elemConcMaster[elemCount+(timePassed-1)*divs*divs*divs]\
-       =elemConc[elemCount];
+      elemConc[elemCount]=elemConc[elemCount]-1/pow(cSize,3);
+      elemConcMaster[elemCount+(timePassed-1)*pow(divs,3)]=elemConc[elemCount];
      }                 
      else if (r==14) {                                    
-      elemConc[elemCount+1] = elemConc[elemCount+1] \
-       +1/(cSize*cSize*cSize);
-      elemConcMaster[elemCount+1+(timePassed-1)*divs*divs*divs] \
-       =elemConc[elemCount+1];
+      elemConc[elemCount+1] = elemConc[elemCount+1]+1/pow(cSize,3);
+      elemConcMaster[elemCount+1+(timePassed-1)*pow(divs,3)]
+      \ =elemConc[elemCount+1];
 
-      elemConc[elemCount] = elemConc[elemCount]-1/(cSize*cSize*cSize);
-      elemConcMaster[elemCount+(timePassed-1)*divs*divs*divs] \
-       =elemConc[elemCount];
+      elemConc[elemCount]=elemConc[elemCount]-1/pow(cSize,3);
+      elemConcMaster[elemCount+(timePassed-1)*pow(divs,3)]=elemConc[elemCount];
      }
      else if (r==15) {                                    
-      elemConc[elemCount+divs-1] = elemConc[elemCount+divs-1] \
-       +1/(cSize*cSize*cSize);
-      elemConcMaster[elemCount+divs-1+(timePassed-1)*divs*divs*divs] \
-       =elemConc[elemCount+divs-1];
+      elemConc[elemCount+divs-1]=elemConc[elemCount+divs-1]+1/pow(cSize,3);
+      elemConcMaster[elemCount+divs-1+(timePassed-1)*pow(divs,3)]
+      \ =elemConc[elemCount+divs-1];
 
-      elemConc[elemCount] = elemConc[elemCount]-1/(cSize*cSize*cSize);
-      elemConcMaster[elemCount+(timePassed-1)*divs*divs*divs] = \ 
-       elemConc[elemCount];
+      elemConc[elemCount]=elemConc[elemCount]-1/pow(cSize,3);
+      elemConcMaster[elemCount+(timePassed-1)*pow(divs,3)]=elemConc[elemCount];
      }
      else if (r==16) {                                    
-      elemConc[elemCount+divs] = elemConc[elemCount+divs] \
-       +1/(cSize*cSize*cSize);
-      elemConcMaster[elemCount+divs+(timePassed-1)*divs*divs*divs] \
-       =elemConc[elemCount+divs];
+      elemConc[elemCount+divs]=elemConc[elemCount+divs]+1/pow(cSize,3);
+      elemConcMaster[elemCount+divs+(timePassed-1)*pow(divs,3)]
+      \ =elemConc[elemCount+divs];
 
-      elemConc[elemCount] = elemConc[elemCount]-1/(cSize*cSize*cSize);
-      elemConcMaster[elemCount+(timePassed-1)*divs*divs*divs] \
-       =elemConc[elemCount];
+      elemConc[elemCount]=elemConc[elemCount]-1/pow(cSize,3);
+      elemConcMaster[elemCount+(timePassed-1)*pow(divs,3)]=elemConc[elemCount];
      }
      else if (r==17) {                                    
-      elemConc[elemCount+divs+1] = elemConc[elemCount+divs+1] \
-       +1/(cSize*cSize*cSize);
-      elemConcMaster[elemCount+divs+1+(timePassed-1)*divs*divs*divs] \
-       =elemConc[elemCount+divs+1];
+      elemConc[elemCount+divs+1] = elemConc[elemCount+divs+1]+1/pow(cSize,3);
+      elemConcMaster[elemCount+divs+1+(timePassed-1)*pow(divs,3)] 
+      \ =elemConc[elemCount+divs+1];
 
-      elemConc[elemCount] = elemConc[elemCount]-1/(cSize*cSize*cSize);
-      elemConcMaster[elemCount+(timePassed-1)*divs*divs*divs] \
-       =elemConc[elemCount];
+      elemConc[elemCount]=elemConc[elemCount]-1/pow(cSize,3);
+      elemConcMaster[elemCount+(timePassed-1)*pow(divs,3)]=elemConc[elemCount];
      }
      else if (r==18) {                                    
-      elemConc[elemCount-1-divs+divs*divs] = elemConc[elemCount-1+ \ 
-       divs*divs-divs]+1/(cSize*cSize*cSize);
-      elemConcMaster[elemCount-1-divs+divs*divs+(timePassed- \ 
-       1)*divs*divs*divs]=elemConc[elemCount-1-divs+divs*divs];
+      elemConc[elemCount-1-divs+divs*divs] = elemConc[elemCount-1+  
+      \ divs*divs-divs]+1/pow(cSize,3);
+      elemConcMaster[elemCount-1-divs+divs*divs+(timePassed-1)*pow(divs,3)]
+      \ =elemConc[elemCount-1-divs+divs*divs];
 
-      elemConc[elemCount] =elemConc[elemCount]-1/(cSize*cSize*cSize);
-      elemConcMaster[elemCount+(timePassed-1)*divs*divs*divs] \
-       =elemConc[elemCount];
+      elemConc[elemCount]=elemConc[elemCount]-1/pow(cSize,3);
+      elemConcMaster[elemCount+(timePassed-1)*pow(cSize,3)]=elemConc[elemCount];
      }
      else if (r==19) {                                    
-      elemConc[elemCount+divs*divs-divs] = elemConc[elemCount+divs*divs-divs] \
-       +1/(cSize*cSize*cSize);
-      elemConcMaster[elemCount-divs+divs*divs+(timePassed-1)*divs*divs*divs] \
-       =elemConc[elemCount-divs+divs*divs];
+      elemConc[elemCount+divs*divs-divs] = elemConc[elemCount+divs*divs-divs]
+      \ +1/pow(cSize,3);
+      elemConcMaster[elemCount-divs+divs*divs+(timePassed-1)*pow(divs,3)] 
+      \ =elemConc[elemCount-divs+divs*divs];
 
-      elemConc[elemCount] =elemConc[elemCount]-1/(cSize*cSize*cSize);
-      elemConcMaster[elemCount+(timePassed-1)*divs*divs*divs]\
-       =elemConc[elemCount];
+      elemConc[elemCount] =elemConc[elemCount]-1/pow(cSize,3);
+      elemConcMaster[elemCount+(timePassed-1)*pow(divs,3)]=elemConc[elemCount];
      }
      else if (r==20) {                                   
-      elemConc[elemCount+1+divs*divs-divs] = elemConc[elemCount+ \ 
-       1+divs*divs-divs]+1/(cSize*cSize*cSize);
-      elemConcMaster[elemCount-divs+divs*divs+1+ \ 
-       (timePassed-1)*divs*divs*divs]=elemConc[elemCount-divs+divs*divs+1];
+      elemConc[elemCount+1+divs*divs-divs]=elemConc[elemCount+1+
+      \ divs*divs-divs]+1/pow(cSize,3);
+      elemConcMaster[elemCount-divs+divs*divs+1+(timePassed-1)*pow(divs,3)]
+      \ =elemConc[elemCount-divs+divs*divs+1];
 
-      elemConc[elemCount] =elemConc[elemCount]-1/(cSize*cSize*cSize);
-      elemConcMaster[elemCount+(timePassed-1)*divs*divs*divs]\
-       =elemConc[elemCount];
+      elemConc[elemCount]=elemConc[elemCount]-1/pow(cSize,3);
+      elemConcMaster[elemCount+(timePassed-1)*pow(divs,3)]=elemConc[elemCount];
      }
      else if (r==21) {                                    
-      elemConc[elemCount-1+divs*divs] = elemConc[elemCount-1+divs*divs] \
-       +1/(cSize*cSize*cSize);
-      elemConcMaster[elemCount-1+divs*divs+(timePassed-1)*divs*divs*divs] \
-       =elemConc[elemCount-1+divs*divs];
+      elemConc[elemCount-1+divs*divs] = elemConc[elemCount-1+divs*divs]
+      \ +1/(pow(cSize,3));
+      elemConcMaster[elemCount-1+divs*divs+(timePassed-1)*pow(divs,3)]
+      \ =elemConc[elemCount-1+divs*divs];
 
-      elemConc[elemCount] = elemConc[elemCount]-1/(cSize*cSize*cSize);
-      elemConcMaster[elemCount+(timePassed-1)*divs*divs*divs] \
-       =elemConc[elemCount];
+      elemConc[elemCount] = elemConc[elemCount]-1/pow(cSize,3);
+      elemConcMaster[elemCount+(timePassed-1)*pow(divs,3)]=elemConc[elemCount];
      }
      else if (r==22) {                                    
-      elemConc[elemCount+divs*divs] = elemConc[elemCount+divs*divs] \
-       +1/(cSize*cSize*cSize);
-      elemConcMaster[elemCount+divs*divs+(timePassed-1)*divs*divs*divs] \
-       =elemConc[elemCount];
+      elemConc[elemCount+divs*divs] = elemConc[elemCount+divs*divs]
+      \ +1/pow(cSize,3);
+      elemConcMaster[elemCount+divs*divs+(timePassed-1)*pow(divs,3)]
+      \ =elemConc[elemCount];
 
-      elemConc[elemCount] = elemConc[elemCount]-1/(cSize*cSize*cSize);
-      elemConcMaster[elemCount+(timePassed-1)*divs*divs*divs] \
-       =elemConc[elemCount];
+      elemConc[elemCount]=elemConc[elemCount]-1/pow(cSize,3);
+      elemConcMaster[elemCount+(timePassed-1)*pow(divs,3)]=elemConc[elemCount];
      }                               
      else if (r==23) {                                   
-      elemConc[elemCount+divs*divs+1] = elemConc[elemCount+divs*divs+1] \
-       +1/(cSize*cSize*cSize);
-      elemConcMaster[elemCount+divs*divs+1+(timePassed-1)*divs*divs*divs] \
-       =elemConc[elemCount+divs*divs+1];
+      elemConc[elemCount+divs*divs+1]=elemConc[elemCount+divs*divs+1]
+      \ +1/(pow(cSize,3));
+      elemConcMaster[elemCount+divs*divs+1+(timePassed-1)*pow(divs,3)]
+      \ =elemConc[elemCount+divs*divs+1];
 
-      elemConc[elemCount] = elemConc[elemCount]-1/(cSize*cSize*cSize);
-      elemConcMaster[elemCount+(timePassed-1)*divs*divs*divs]\
-       =elemConc[elemCount];
+      elemConc[elemCount]=elemConc[elemCount]-1/(pow(cSize,3));
+      elemConcMaster[elemCount+(timePassed-1)*pow(divs,3)]=elemConc[elemCount];
      }
      else if (r==24) {                                    
-      elemConc[elemCount-divs+divs*divs+1] = elemConc[elemCount+divs*divs-divs+1]\
-       +1/(cSize*cSize*cSize);
-      elemConcMaster[elemCount-divs+divs*divs+1+(timePassed-1)*divs*divs*divs]\
-       =elemConc[elemCount-divs+divs*divs+1];
+      elemConc[elemCount-divs+divs*divs+1]=elemConc[elemCount+divs*divs
+      \ -divs+1]+1/pow(cSize,3);
+      elemConcMaster[elemCount-divs+divs*divs+1+(timePassed-1)*pow(divs,3)]
+      \ =elemConc[elemCount-divs+divs*divs+1];
 
-      elemConc[elemCount] = elemConc[elemCount]-1/(cSize*cSize*cSize);
-      elemConcMaster[elemCount+(timePassed-1)*divs*divs*divs]\
-       =elemConc[elemCount];
+      elemConc[elemCount]=elemConc[elemCount]-1/pow(cSize,3);
+      elemConcMaster[elemCount+(timePassed-1)*pow(divs,3)]=elemConc[elemCount];
      }
      else if (r==25) {                                    
-      elemConc[elemCount+divs*divs+divs] = elemConc[elemCount+divs*divs+divs]\
-       +1/(cSize*cSize*cSize);
-      elemConcMaster[elemCount+divs+divs*divs+(timePassed-1)*divs*divs*divs]\
-       =elemConc[elemCount+divs+divs*divs];
+      elemConc[elemCount+divs*divs+divs] = elemConc[elemCount+divs*divs+divs]
+      \ +1/pow(cSize,3);
+      elemConcMaster[elemCount+divs+divs*divs+(timePassed-1)*pow(divs,3)]
+      \ =elemConc[elemCount+divs+divs*divs];
 
-      elemConc[elemCount] = elemConc[elemCount]-1/(cSize*cSize*cSize);
-      elemConcMaster[elemCount+(timePassed-1)*divs*divs*divs]\
-       =elemConc[elemCount];
+      elemConc[elemCount]=elemConc[elemCount]-1/pow(cSize,3);
+      elemConcMaster[elemCount+(timePassed-1)*pow(divs,3)]=elemConc[elemCount];
      }
      else if (r==26) {                                    
-      elemConc[elemCount+divs+1+divs*divs] = elemConc[elemCount+divs+1+divs*divs]\
-       +1/(cSize*cSize*cSize);
-      elemConcMaster[elemCount+1+divs+divs*divs+(timePassed-1)*divs*divs*divs]\
-       =elemConc[elemCount+divs+1+divs*divs];
+      elemConc[elemCount+divs+1+divs*divs]=elemConc[elemCount+divs+1+divs*divs]
+      \ +1/pow(cSize,3);
+      elemConcMaster[elemCount+1+divs+divs*divs+(timePassed-1)*pow(divs,3)]
+      \ =elemConc[elemCount+divs+1+divs*divs];
 
-      elemConc[elemCount] = elemConc[elemCount]-1/(cSize*cSize*cSize);
-      elemConcMaster[elemCount+(timePassed-1)*divs*divs*divs]\
-       =elemConc[elemCount];
+      elemConc[elemCount]=elemConc[elemCount]-1/pow(cSize,3);
+      elemConcMaster[elemCount+(timePassed-1)*pow(divs,3)]=elemConc[elemCount];
      }
      else if (r==13){   //for r=13, where the molecule stays put                                  
       elemConc[elemCount]= elemConc[elemCount]; 
-      elemConcMaster[elemCount+(timePassed-1)*divs*divs*divs]\
-       =elemConc[elemCount];
+      elemConcMaster[elemCount+(timePassed-1)*pow(divs,3)]=elemConc[elemCount];
      }
      else {
      break;
-     }            */
+     }            
 
-/*
- cout << r << endl;
+   cout << r << endl;
 // cout << "elemcount:" << elemCount << " r:"  << r << " conc:" << elemConc[elemCount] << " time: " << timePassed << endl;  
 //     h1->Fill(elemConc[elemCount]);
 //     h1->Draw("hist");   
   
-    } //end bracket for the molecule count per elem    
+   } //end bracket for the molecule count per elem    
  //  h1->Fill(elemConc[elemCount]);
 //  h1->Draw("hist");   
 // if ( elemConcUpdate[elemCount] != 1451.7 && elemConcUpdate[elemCount] != 0 ) {
 //   cout << elemCount << "     " <<  elemConcUpdate[elemCount] << endl;
 // }
 // h1->Draw("hist");
-   } //end bracket for if statement to separate nonboundary&boundary  
-      
+  } //end bracket for the if statement separating 1st layer from rest
+   
    //cout << "time: " << timePassed << " " << elemConcMaster[elemCount+(timePassed-1)*divs*divs*divs] << endl; 
    
    //decide at what time you want to see the conc in all the elems
    //sidenote: can also do it for one element for all time...
-   if (timePassed==totTime) {
+/*   if (timePassed==totTime) {
     h1->Fill(elemConc[elemCount]);
     h1->Draw("hist");
     cout << elemCount << " " << elemConc[elemCount] << endl; 
    }  
                                                        */
-                                                            
   } //end bracket for the 0<elemCount<divs*divs*divs                         
  
 
