@@ -34,8 +34,8 @@
                            /         
   The code will use 1000 cubic elements to make a 10x10x10 acrylic cube.
   So number of divisions=divs=10. 
-  1st outer layer has all 0 concentration, 2nd outer layer will be  the 
-  water layer with maximum concentration, and the 3rd outer layer and
+  The outer layer has all 0 concentration, 1st inner layer will be  the 
+  water layer with maximum concentration, and the 2nd inner layer and
   beyond will be the acrylic.
   [divs=10 is not hard-coded in, but divs must be at least 5 to make sense.
   So we have an outer layer of 61, 2nd layer has 26, 3rd most has 1. 
