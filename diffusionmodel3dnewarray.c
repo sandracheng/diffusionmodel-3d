@@ -34,14 +34,15 @@
                            /         
   The code will use 1000 cubic elements to make a 10x10x10 acrylic cube.
   So number of divisions=divs=10. 
-  The outer layer has all 0 concentration, 1st inner layer will be  the 
+  The outer layer has a random concentration, 1st inner layer will be the 
   water layer with maximum concentration, and the 2nd inner layer and
   beyond will be the acrylic.
   [divs=10 is not hard-coded in, but divs must be at least 5 to make sense.
-  So we have an outer layer of 61, 2nd layer has 26, 3rd most has 1. 
-  For divs=n, outer layer has n^3-(n-1)^3 elements; 2nd layer is divs=n-2;
-  1st layer has divs=n-4. So a 5x5x5 cube can enclose a 3xx3x3 which can
-  enclose a 1x1x1. A 6x6x6 cube can enclose a 4x4x4 which can enclose a 2x2x2.
+  So we have an outer layer of 61 elements. 2nd layer has 26, 3rd has 1. 
+  For divs=n, outer layer has n^3-(n-1)^3 elements. 2nd layer is a cube
+  with divs=n-2;1st layer is a cube of divs=n-4. 
+  e.g. A 5x5x5 cube can enclose a 3x3x3 which can enclose a 1x1x1. 
+  A 6x6x6 cube can enclose a 4x4x4 which can enclose a 2x2x2.
  
                                                             
   The 10x10x10 acrylic cube may then be normalized to any size acrylic dogbone.
@@ -222,8 +223,8 @@ int diffusionmodel3dnewarray() {
    
     for (moleculeCount=1; moleculeCount<= moleculeInCube; moleculeCount++){ 
 /* need to know position of the 26 surrounding cube elements. will name it 
-   by the number scheme as above, with elements are labelled 0 to 26.
-   the central cube number is 13                   
+   by the number scheme as above, with elements labelled 0 to 26.
+   The central cube number is 13                   
                   
    cube13= elemConc[elemCount];              main cube             
    cube12= elemConc[elemCount-1];            left        
@@ -268,7 +269,7 @@ int diffusionmodel3dnewarray() {
       elemConc[elemCount]= elemConc[elemCount]-1/((cSize*cSize*cSize));
       elemConcMaster[elemCount+(timePassed-1)*divs*divs*divs]=elemConc[elemCount];
      }                                                   
-     else if (r==1 && (elemCount-divs*divs-divs)>=0 && elemCount-divs*divs-divs)<divs*divs*divs) {                                    
+     else if (r==1 && (elemCount-divs*divs-divs)>=0 && (elemCount-divs*divs-divs)<divs*divs*divs) {                                    
       elemConc[elemCount-divs*divs-divs]=elemConc[elemCount-divs*divs-divs]+1/((cSize*cSize*cSize));
       elemConcMaster[elemCount-divs*divs-divs+(timePassed-1)*(divs*divs*divs)]= elemConc[elemCount-divs*divs-divs];  
          
@@ -484,7 +485,7 @@ int diffusionmodel3dnewarray() {
 
 
  } // end bracket for total time                 
-cout << "it works yan." << endl; 
+cout << "it works, yan." << endl; 
 
 } //end bracket 4 int main(void)
   
