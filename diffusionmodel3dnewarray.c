@@ -4,7 +4,7 @@
   REVISION HISTORY: see GitHub. Project name is: diffusionmodel-3d
 ************
   Based on Thomas' initial 3D Diffusion Model code. This is for water in
-  an acrylic dogbone.       
+  an acrylic piece, like a dogbone.       
   Acrylic dogbone, with the bottom front left corner at (0,0,0). 
     
     /|\ z-axis
@@ -78,10 +78,10 @@
 */
 
 #include <stdio.h> 
-#include <math.h>   
-#include <time.h>   
+#include <math.h>      
 #include <stdlib.h> 
 
+#include "TRandom3.h" //new PRNG based on Mersenne Twister
 #include "TCanvas.h"
 #include "TH1.h"
 
@@ -128,9 +128,8 @@ int diffusionmodel3dnewarray() {
 
  //
 // double DcoeffAir; //diffusion constant for saturated acrylic in dry are
-// doule airTime; //time it has been out in air; not sure if need
-           
- srand(time(NULL));
+// double airTime; //time it has been out in air; not sure if need
+   
 
  //need to reset the concentrations for the 1st and 2nd layers always for
  //both the current and update array. 1st layer=0, 2nd layer=maxConc.
@@ -269,8 +268,9 @@ int diffusionmodel3dnewarray() {
    cube25= elemConc[elemCount+divs+divs*divs];
    cube26= elemConc[elemCount+divs+1+divs*divs];                         */ 
    
-            
-     int r = rand() % 27; //random number between 0 and 26; 27 possibilities 
+    TRandom3 * rand = new TRandom3();
+    Int_t r = rand->Integer(27);
+    //above is a PRNG to get an int from [0, 27-1]
     //for each molecule to move into one of the adjacent 26 cubes or stay.
     //all if statements match the random number to the cube it moves to
 
@@ -487,14 +487,14 @@ int diffusionmodel3dnewarray() {
 // }
 // h1->Draw("hist");
 
-
+/*
   //decide at what time you want to see the conc in all the elems
   //sidenote: can also do it for one element for all time...
-
-//  if (timePassed==totTime) {
-//    h1->Fill(elemConcMaster[elemCount+(timePassed-1)*divs*divs*divs]);
-//    h1->Draw("hist");
-//   }
+  
+    if (timePassed==totTime) {
+      h1->Fill(elemConcMaster[elemCount+(timePassed-1)*divs*divs*divs]);
+      h1->Draw("hist");
+    }      */
  
 
 /*    
@@ -532,8 +532,7 @@ int diffusionmodel3dnewarray() {
 
 
 
-
-                         
+//ignore the below - it has not been checked fully.                        
 
 /*this function is for calculating the new conc at each elem in the dry
   acrylic area. So not the boundaries. Each elem is surrounded by 6 
