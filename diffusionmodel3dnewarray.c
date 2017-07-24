@@ -37,12 +37,16 @@
   The outer layer has a random concentration, 1st inner layer will be the 
   water layer with maximum concentration, and the 2nd inner layer and
   beyond will be the acrylic.
-  [divs=10 is not hard-coded in, but divs must be at least 5 to make sense.
-  So we have an outer layer of 61 elements. 2nd layer has 26, 3rd has 1. 
+
+
+  [divs=10 is not hard-coded in, but divs must be at least 5 to make sense. So for 
+  divs=5 we have an outer layer of 61 elements. 2nd layer has 26, 3rd has 1. 
+  The water layer is the 2nd layer, the 3rd layer is the acrylic.             
+
   For divs=n, outer layer has n^3-(n-1)^3 elements. 2nd layer is a cube
   with divs=n-2;1st layer is a cube of divs=n-4. 
   e.g. A 5x5x5 cube can enclose a 3x3x3 which can enclose a 1x1x1. 
-  A 6x6x6 cube can enclose a 4x4x4 which can enclose a 2x2x2.
+  A 6x6x6 cube can enclose a 4x4x4 which can enclose a 2x2x2.]
  
                                                             
   The 10x10x10 acrylic cube may then be normalized to any size acrylic dogbone.
@@ -86,26 +90,30 @@
 #include "TH1.h"
 
 int diffusionmodel3dnewarray() {                                                                    
- const int divs=5;//n.o. elements aka n.o. divisions in the big acrylic cube
- const int totTime=5;
+ const int divs=8;//n.o. elements aka n.o. divisions in the big acrylic "cube"
+ const int totTime=2;
  //const int timestep=1; 
- int timePassed;          
- double maxConc= 1451.7008; //max concentration of water in moles. Placeholder #.
+ int timePassed;
+          
+ // measurements are taken based on whatever acrylic sample you're doing
+ // these are based off Tom's 3rd dogbone and are in metres
+ double xTotLen =0.01888;
+ double yTotLen =0.00617;
+ double zTotLen =0.20320;
+
+ double maxConc= 0.0262599/(xTotLen*yTotLen*zTotLen); //max conc of water in moles/unit volume. 
+ //the decimal # is given by (2% of acrylic in mass) divided by water's molecular weight
  double elemConc[divs*divs*divs]; //array for current conc in each element
                                   //each element is defined by its position
  double elemConcMaster[divs*divs*divs*totTime];  //updated array that
   //has all the conc for each elem at all times. 
 
- double DcoeffWater; //diffusion constant for water in acrylic     
+ double DcoeffWaterRT= pow(4.22,-12); //diffusion constant for water in acrylic  
+ //number is Tom's RT 'soak' D value, 3.65x10^-7  m^2/day converted into m^2/s
+    
  int i,j,k; //counter for x,y and z positions respectively for the entire cube
  int x,y,z; //counter for the x,y and z  positions for the 2nd layer
  int elemCount; //counter for the total number of elements
-
- // measurements are taken based on whatever acrylic sample you're doing
- // these are based off the AV and are in metres
- double xTotLen = 450;
- double yTotLen = 0.055;
- double zTotLen = 450;
 
  // x,y,and z lengths of each cube
  double xLen= xTotLen/divs; 
@@ -117,6 +125,8 @@ int diffusionmodel3dnewarray() {
  const int scndLayerCount = divs-2; //counter for the second outside layer
  int n,b,v,p,c,s,f,g; //just counters.
  int moleculeCount;
+ const double holderConc=47.3; //this is just a random conc for the outer first layer
+ const int avogadroNum=pow(6,23); //Avogadro's number, rounded
 
  TCanvas *c1 = new TCanvas;           
  Int_t nBins = 1000;
@@ -126,7 +136,6 @@ int diffusionmodel3dnewarray() {
  TH1* h1 = new TH1D("Legend","Title", nBins,lowlim,uplim);
  h1->SetFillColor(kOrange);
 
- //
 // double DcoeffAir; //diffusion constant for saturated acrylic in dry are
 // double airTime; //time it has been out in air; not sure if need
    
@@ -136,55 +145,67 @@ int diffusionmodel3dnewarray() {
  //all of inside starts at conc=0   
  for (timePassed=1; timePassed<=totTime; timePassed++) { 
   for (elemCount=0; elemCount<divs*divs*divs; elemCount++) {    
-
+   
    //1st layer aka the cube faces
    //could have grouped front and back together but
    //need to separate front and back in order to do specific kind of testing
    if (elemCount <= divs*divs-1) {         //front face
-    elemConc[elemCount]= 47.3;   
-    elemConcMaster[elemCount+(timePassed-1)*divs*divs*divs]=47.3;
+    elemConc[elemCount]= holderConc;   
+    elemConcMaster[elemCount+(timePassed-1)*divs*divs*divs]=holderConc;
    } 
 
    if (elemCount >= divs*divs*(divs-1)){    //back face
-    elemConc[elemCount]= 0;   
-    elemConcMaster[elemCount+(timePassed-1)*divs*divs*divs]=0;
+    elemConc[elemCount]= holderConc;   
+    elemConcMaster[elemCount+(timePassed-1)*divs*divs*divs]=holderConc;
    } 
 
 
    for (j=0; j<divs; j++) {    
     for (k=0; k<divs*divs; k++) {
      if (k<divs) {
-      elemConc[j*divs*divs+k*divs]= 0;  //for left face
-      elemConcMaster[j*divs*divs+k*divs+(timePassed-1)*divs*divs*divs]= 0;
+      elemConc[j*divs*divs+k*divs]= holderConc;  //for left face
+      elemConcMaster[j*divs*divs+k*divs+(timePassed-1)*divs*divs*divs]= holderConc;
 
-      elemConc[j*divs*divs+k*divs+divs-1]= 0;  //for right face
-      elemConcMaster[j*divs*divs+k*divs+divs-1+(timePassed-1)*divs*divs*divs]=0;
+      elemConc[j*divs*divs+k*divs+divs-1]= holderConc;  //for right face
+      elemConcMaster[j*divs*divs+k*divs+divs-1+(timePassed-1)*divs*divs*divs]=holderConc;
 
-      elemConc[j*divs*divs+k] = 0; //for bottom face
-      elemConcMaster[j*divs*divs+k+(timePassed-1)*divs*divs*divs]=0;
+      elemConc[j*divs*divs+k] = holderConc; //for bottom face
+      elemConcMaster[j*divs*divs+k+(timePassed-1)*divs*divs*divs]=holderConc;
      }
      else if (k >= divs*(divs-1)) {
-      elemConc[j*divs*divs+k]= 0; //for top face
-      elemConcMaster[j*divs*divs+k+(timePassed-1)*divs*divs*divs]=0;
+      elemConc[j*divs*divs+k]= holderConc; //for top face
+      elemConcMaster[j*divs*divs+k+(timePassed-1)*divs*divs*divs]=holderConc;
      }
     }
    }
   //for the 2nd layer, the water layer           
    for (z=0; z<scndLayerCount;z++) {
     for (y=0; y<scndLayerCount;y++) {
+   
      elemConc[divs*(divs+z+1)+y+1]=maxConc;   //2nd layer front face                              
      elemConcMaster[divs*(divs+z+1)+y+1+(timePassed-1)*divs*divs*divs]=maxConc;
+ 
+     if (0<z && z<scndLayerCount-1 && 0<y && y<scndLayerCount-1) { 
+     elemConc[divs*(divs+z+1)+y+1]=0;   //3rd layer and beyond in front face?                              
+     elemConcMaster[divs*(divs+z+1)+y+1+(timePassed-1)*divs*divs*divs]=0;
+     } 
 
-     elemConc[divs*(divs*scndLayerCount+z+1)+y+1]= 0;   //2nd layer back face                              
+     elemConc[divs*(divs*scndLayerCount+z+1)+y+1]= maxConc;   //2nd layer back face                              
+     elemConcMaster[divs*(divs*scndLayerCount+z+1)+y+1+(timePassed-1)*divs*divs*divs]= maxConc;
+
+     if (0<z && z<scndLayerCount-1 && 0<y && y<scndLayerCount-1) { 
+     elemConc[divs*(divs*scndLayerCount+z+1)+y+1]= 0;   //3rd layer of back face?                              
      elemConcMaster[divs*(divs*scndLayerCount+z+1)+y+1+(timePassed-1)*divs*divs*divs]= 0;
+     }
 
+ 
      if (z==0 && y==0) {
       for (n=0; n<scndLayerCount; n++) {
        for (b=0; b<scndLayerCount; b++) {
         int n_r = n*divs*divs;
 
-        elemConc[divs*(divs+1)+1+n_r+divs*b]= 0; //2nd layer left face
-        elemConcMaster[divs*(divs+1)+1+n_r+divs*b+(timePassed-1)*divs*divs*divs]=0; 
+        elemConc[divs*(divs+1)+1+n_r+divs*b]= maxConc; //2nd layer left face
+        elemConcMaster[divs*(divs+1)+1+n_r+divs*b+(timePassed-1)*divs*divs*divs]=maxConc; 
      
        }
       }
@@ -192,8 +213,8 @@ int diffusionmodel3dnewarray() {
        for (p=0; p<scndLayerCount;p++){
         int p_r=p*divs*divs;
 
-        elemConc[divs*(divs+1)+1+v+p_r]=0; //2nd layer bottom face
-        elemConcMaster[divs*(divs+1)+1+v+p_r+(timePassed-1)*divs*divs*divs]= 0; 
+        elemConc[divs*(divs+1)+1+v+p_r]=maxConc; //2nd layer bottom face
+        elemConcMaster[divs*(divs+1)+1+v+p_r+(timePassed-1)*divs*divs*divs]= maxConc; 
        }
       }
      }//end bracket for z==0 and y==0
@@ -203,8 +224,8 @@ int diffusionmodel3dnewarray() {
        for (s=0; s<scndLayerCount; s++) {
         int c_r = c*divs*divs+divs*s;
 
-        elemConc[divs*(divs+1)+y+1+c_r]= 0; //2nd layer right face
-        elemConcMaster[divs*(divs+1)+y+1+c_r+(timePassed-1)*divs*divs*divs]=0; 
+        elemConc[divs*(divs+1)+y+1+c_r]= maxConc; //2nd layer right face
+        elemConcMaster[divs*(divs+1)+y+1+c_r+(timePassed-1)*divs*divs*divs]=maxConc; 
        }    
       }
      }
@@ -214,13 +235,16 @@ int diffusionmodel3dnewarray() {
        for (g=0; g<scndLayerCount;g++) {
         int g_r=  g*divs*divs;
 
-        elemConc[divs*(divs+z+1)+1+f+g_r] = 0; //2nd layer top face
-        elemConcMaster[divs*(divs+z+1)+1+f+g_r+(timePassed-1)*divs*divs*divs]=0; 
+        elemConc[divs*(divs+z+1)+1+f+g_r] = maxConc; //2nd layer top face
+        elemConcMaster[divs*(divs+z+1)+1+f+g_r+(timePassed-1)*divs*divs*divs]=maxConc; 
        }
       }
      } //end bracket for z==scndLayerCount-1 and y==0
+     
     }
    }
+
+  cout << "elem: " << elemCount << "elem conc: " << elemConc[elemCount] << endl;
 
 //up to here the initialization values are corrrrrrrrect yay
   }  //end bracket for first elemCount                                                         
@@ -232,8 +256,8 @@ int diffusionmodel3dnewarray() {
             
  //make random walk occur for all layers but the first; just reset the 2nd layer
  //every timestep
-   if (elemConcMaster[elemCount]!=47.30000) {   
-    moleculeInCube = (int)(elemConc[elemCount]*(xLen*yLen*zLen)); 
+   if (elemConcMaster[elemCount]!=holderConc) {   
+    moleculeInCube = (int)(elemConc[elemCount]*(xLen*yLen*zLen)*avogadroNum); 
    
     for (moleculeCount=1; moleculeCount<= moleculeInCube; moleculeCount++){ 
 /* need to know position of the 26 surrounding cube elements. will name it 
@@ -469,6 +493,7 @@ int diffusionmodel3dnewarray() {
    } //end bracket for the molecule count per elem
 
 
+/*
   // want to calculate the total amount of water passing into the LAB layer
   // so we sum up the amount of water in the inner cube(s)
   // just for a quick calculation, I'll do 5 layers so the inner cube
@@ -477,7 +502,7 @@ int diffusionmodel3dnewarray() {
   if (elemCount==62){
    cout << "time passed:" << timePassed << " element conc:" << elemConc[elemCount] <<endl;  
 
-  }
+  }      */
 
     
 //  h1->Fill(elemConc[elemCount]);
