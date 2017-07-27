@@ -126,7 +126,7 @@ int diffusionmodel3dnewarray() {
  int n,b,v,p,c,s,f,g; //just counters.
  int moleculeCount;
  const double holderConc=47.3; //this is just a random conc for the outer first layer
- const int fakeAvogadroNum=pow(6,6); //representation of Avogadro's number, rounded
+ const int fakeAvogadroNum=1;//pow(6,6); //representation of Avogadro's number, rounded
  //pow(6,23) renders the code unusable - I will try a million molecules and multiply
  //the results by pow(1,17)?
 
@@ -149,8 +149,7 @@ int diffusionmodel3dnewarray() {
  //both the current and update array. 1st layer=0, 2nd layer=maxConc.
  //all of inside starts at conc=0   
  for (timePassed=1; timePassed<=totTime; timePassed++) { 
-  for (elemCount=0; elemCount<divs*divs*divs; elemCount++) {    
-   
+  for (elemCount=0; elemCount<divs*divs*divs; elemCount++) { 
    //1st layer aka the cube faces
    //could have grouped front and back together but
    //need to separate front and back in order to do specific kind of testing
@@ -186,24 +185,20 @@ int diffusionmodel3dnewarray() {
   //for the 2nd layer, the water layer           
    for (z=0; z<scndLayerCount;z++) {
     for (y=0; y<scndLayerCount;y++) {
-   
+    
+//     if (0<z && z<scndLayerCount-3 && 0<y && y<scndLayerCount-3 && timePassed==0) { 
+//     elemConc[divs*(divs+z+1)+y+1]=0;   //3rd layer front face                              
+ //    elemConc[divs*(divs*scndLayerCount+z+1)+y+1]= 0;   //3rd layer of other faces                              
+//     }
+
+     if (z>0 && z>scndLayerCount-3 && y<0 && y<scndLayerCount-3 && timePassed==0) {
      elemConc[divs*(divs+z+1)+y+1]=maxConc;   //2nd layer front face                              
      elemConcMaster[divs*(divs+z+1)+y+1+(timePassed-1)*divs*divs*divs]=maxConc;
  
-     if (0<z && z<scndLayerCount-1 && 0<y && y<scndLayerCount-1) { 
-     elemConc[divs*(divs+z+1)+y+1]=0;   //3rd layer and beyond in front face?                              
-     elemConcMaster[divs*(divs+z+1)+y+1+(timePassed-1)*divs*divs*divs]=0;
-     } 
-
      elemConc[divs*(divs*scndLayerCount+z+1)+y+1]= maxConc;   //2nd layer back face                              
      elemConcMaster[divs*(divs*scndLayerCount+z+1)+y+1+(timePassed-1)*divs*divs*divs]= maxConc;
-
-     if (0<z && z<scndLayerCount-1 && 0<y && y<scndLayerCount-1) { 
-     elemConc[divs*(divs*scndLayerCount+z+1)+y+1]= 0;   //3rd layer of back face?                              
-     elemConcMaster[divs*(divs*scndLayerCount+z+1)+y+1+(timePassed-1)*divs*divs*divs]= 0;
      }
 
- 
      if (z==0 && y==0) {
       for (n=0; n<scndLayerCount; n++) {
        for (b=0; b<scndLayerCount; b++) {
@@ -245,11 +240,10 @@ int diffusionmodel3dnewarray() {
        }
       }
      } //end bracket for z==scndLayerCount-1 and y==0
-     
     }
    }
 
-// cout << "elem: " << elemCount << "elem conc: " << elemConc[elemCount] << endl;
+//  cout << "time: "<< timePassed << " elem: " << elemCount << " elem conc: " << elemConc[elemCount] << endl;
 //up to here the initialization values are corrrrrrrrect yay
   }  //end bracket for first elemCount                                                         
 
@@ -263,7 +257,7 @@ int diffusionmodel3dnewarray() {
    if (elemConcMaster[elemCount]!=holderConc) {   
     moleculeInCube = (int)(elemConc[elemCount]*(xLen*yLen*zLen)*fakeAvogadroNum); 
    
-    for (moleculeCount=1; moleculeCount<= moleculeInCube; moleculeCount++){ 
+    for (moleculeCount=1; moleculeCount<= moleculeInCube; moleculeCount++){                     
 /* need to know position of the 26 surrounding cube elements. will name it 
    by the number scheme as above, with elements labelled 0 to 26.
    The central cube number is 13                   
@@ -295,6 +289,8 @@ int diffusionmodel3dnewarray() {
    cube24= elemConc[elemCount+divs-1+divs*divs];
    cube25= elemConc[elemCount+divs+divs*divs];
    cube26= elemConc[elemCount+divs+1+divs*divs];                         */ 
+
+
    
     TRandom3 * rand = new TRandom3();
     Int_t r = rand->Integer(27);
@@ -493,16 +489,20 @@ int diffusionmodel3dnewarray() {
       elemConc[elemCount]= elemConc[elemCount]; 
       elemConcMaster[elemCount+(timePassed-1)*divs*divs*divs]=elemConc[elemCount];
      }
-  
+                                                                                                             
+/*  
     //can also do it for the entire front face of the inner cube.
     if (elemCount<divs*divs+divs*divs && elemConcMaster[elemCount]==0 && timePassed==totTime) {
      frontFaceCounter+=1;
     moleculeFFCounter+=elemConcMaster[elemCount+(timePassed-1)*divs*divs*divs]*(xLen*yLen*zLen);
-    }
-                
-   } //end bracket for the molecule count per elem
+    }              */
 
-/*
+                
+   } //end bracket for the molecule count per elem 
+ 
+//    cout << "time: " << timePassed << " elem:" << elemCount << " conc:" << elemConc[elemCount] << endl; 
+
+
   //want to calculate the total amount of water passing into the LAB layer
   //so we sum up the amount of water in the inner cube(s)
   //just for a quick calculation, I'll do 5 layers so the inner cube
@@ -511,14 +511,15 @@ int diffusionmodel3dnewarray() {
   if (elemCount==62){
    cout << "time passed:" << timePassed << " element conc:" << elemConc[elemCount] <<endl;  
   }     
-     */
-  //can also do it for the entire front face of the inner cube.
+     
+
+/*  //can also do it for the entire front face of the inner cube.
   if (elemCount<divs*divs+divs*divs && elemConcMaster[elemCount]==0 && timePassed==totTime) {
    frontFaceCounter+=1;
    moleculeFFCounter+=elemConcMaster[elemCount+(timePassed-1)*divs*divs*divs]*(xLen*yLen*zLen);
    cout << moleculeFFCounter/(frontFaceCounter*xLen*yLen*zLen) << endl;
   }                
-  
+  */
     
 //  h1->Fill(elemConc[elemCount]);
 //  h1->Draw("hist");   
@@ -558,7 +559,7 @@ int diffusionmodel3dnewarray() {
     gr1->Draw("AC");
    }  */
 
-
+ 
    } //end bracket for the 2nd 0<elemCount<divs*divs*divs
    
   } //end bracket for the if statement separating 1st layer from rest
