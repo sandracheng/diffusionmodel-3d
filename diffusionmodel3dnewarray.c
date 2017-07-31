@@ -85,13 +85,16 @@
 #include <math.h>      
 #include <stdlib.h> 
 
+#include "TClass.h"
 #include "TRandom3.h" //new PRNG based on Mersenne Twister
+#include "TUUID.h"
+
 #include "TCanvas.h"
 #include "TH1.h"
 
-int diffusionmodel3dnewarray() {                                                                    
- const int divs=8;//n.o. elements aka n.o. divisions in the big acrylic "cube"
- const int totTime=2;
+void diffusionmodel3dnewarray() {                                                                    
+ const int divs=5;//n.o. elements aka n.o. divisions in the big acrylic "cube"
+ const int totTime=5;
  //const int timestep=1; 
  int timePassed;
           
@@ -126,7 +129,7 @@ int diffusionmodel3dnewarray() {
  int n,b,v,p,c,s,f,g; //just counters.
  int moleculeCount;
  const double holderConc=47.3; //this is just a random conc for the outer first layer
- const int fakeAvogadroNum=1;//pow(6,6); //representation of Avogadro's number, rounded
+ const int fakeAvogadroNum=pow(6,6); //representation of Avogadro's number, rounded
  //pow(6,23) renders the code unusable - I will try a million molecules and multiply
  //the results by pow(1,17)?
 
@@ -141,10 +144,10 @@ int diffusionmodel3dnewarray() {
  TH1* h1 = new TH1D("Legend","Title", nBins,lowlim,uplim);
  h1->SetFillColor(kOrange);
 
+
 // double DcoeffAir; //diffusion constant for saturated acrylic in dry are
 // double airTime; //time it has been out in air; not sure if need
    
-
  //need to reset the concentrations for the 1st and 2nd layers always for
  //both the current and update array. 1st layer=0, 2nd layer=maxConc.
  //all of inside starts at conc=0   
@@ -191,7 +194,7 @@ int diffusionmodel3dnewarray() {
  //    elemConc[divs*(divs*scndLayerCount+z+1)+y+1]= 0;   //3rd layer of other faces                              
 //     }
 
-     if (z>0 && z>scndLayerCount-3 && y<0 && y<scndLayerCount-3 && timePassed==0) {
+     if (0<z && z>scndLayerCount-3 && 0<y && y<scndLayerCount-3 && timePassed==0) {
      elemConc[divs*(divs+z+1)+y+1]=maxConc;   //2nd layer front face                              
      elemConcMaster[divs*(divs+z+1)+y+1+(timePassed-1)*divs*divs*divs]=maxConc;
  
@@ -205,8 +208,7 @@ int diffusionmodel3dnewarray() {
         int n_r = n*divs*divs;
 
         elemConc[divs*(divs+1)+1+n_r+divs*b]= maxConc; //2nd layer left face
-        elemConcMaster[divs*(divs+1)+1+n_r+divs*b+(timePassed-1)*divs*divs*divs]=maxConc; 
-     
+        elemConcMaster[divs*(divs+1)+1+n_r+divs*b+(timePassed-1)*divs*divs*divs]=maxConc;  
        }
       }
       for (v=0;v<scndLayerCount;v++){
@@ -243,15 +245,13 @@ int diffusionmodel3dnewarray() {
     }
    }
 
-//  cout << "time: "<< timePassed << " elem: " << elemCount << " elem conc: " << elemConc[elemCount] << endl;
+// cout << "time: "<< timePassed << " elem: " << elemCount << " elem conc: " << elemConc[elemCount] << endl;
 //up to here the initialization values are corrrrrrrrect yay
   }  //end bracket for first elemCount                                                         
 
-
   for (elemCount=0; elemCount<divs*divs*divs; elemCount++) {                  
 //   printf("elem:%d; elem conc: %f\n", elemCount, elemConc[elemCount]); // works! 
-
-            
+       
  //make random walk occur for all layers but the first; just reset the 2nd layer
  //every timestep
    if (elemConcMaster[elemCount]!=holderConc) {   
@@ -290,10 +290,12 @@ int diffusionmodel3dnewarray() {
    cube25= elemConc[elemCount+divs+divs*divs];
    cube26= elemConc[elemCount+divs+1+divs*divs];                         */ 
 
+    unsigned int StartSeed;
+    gRandom->SetSeed(StartSeed);
 
-   
-    TRandom3 * rand = new TRandom3();
-    Int_t r = rand->Integer(27);
+    Int_t r = (gRandom->Rndm())*27; 
+//    cout << timePassed << " " << elemCount << " "  << moleculeCount << " " << r << endl;
+
     //above is a PRNG to get an int from [0, 27-1]
     //for each molecule to move into one of the adjacent 26 cubes or stay.
     //all if statements match the random number to the cube it moves to
@@ -310,24 +312,22 @@ int diffusionmodel3dnewarray() {
       elemConc[elemCount]= elemConc[elemCount]-pow(1,17)/((xLen*yLen*zLen));
       elemConcMaster[elemCount+(timePassed-1)*divs*divs*divs]=elemConc[elemCount];
      }                                                   
-     else if (r==1 && (elemCount-divs*divs-divs)>=0 && (elemCount-divs*divs-divs)<divs*divs*divs) {                                    
+     else if (r==1 && (elemCount-divs*divs-divs)>=0 && (elemCount-divs*divs-divs)<divs*divs*divs) {                              
       elemConc[elemCount-divs*divs-divs]=elemConc[elemCount-divs*divs-divs]+pow(1,17)/((xLen*yLen*zLen));
       elemConcMaster[elemCount-divs*divs-divs+(timePassed-1)*(divs*divs*divs)]= elemConc[elemCount-divs*divs-divs];  
          
       elemConc[elemCount]=elemConc[elemCount]-pow(1,17)/((xLen*yLen*zLen));
       elemConcMaster[elemCount+(timePassed-1)*divs*divs*divs]=elemConc[elemCount-divs*divs-divs];  
      }                 
-     else if (r==2 && (elemCount-divs*divs-divs+1)>=0 && (elemCount-divs*divs-divs+1)<divs*divs*divs) {                                
-      elemConc[elemCount-divs*divs-divs+1]=elemConc[elemCount-divs*divs-divs+1]+pow(1,17)/((xLen*yLen*zLen));
+     else if (r==2 && (elemCount-divs*divs-divs+1)>=0 && (elemCount-divs*divs-divs+1)<divs*divs*divs) {                                elemConc[elemCount-divs*divs-divs+1]=elemConc[elemCount-divs*divs-divs+1]+pow(1,17)/((xLen*yLen*zLen));
       elemConcMaster[elemCount-divs*divs-divs+1+(timePassed-1)*divs*divs*divs]= elemConc[elemCount-divs*divs-divs+1];
  
       elemConc[elemCount]= elemConc[elemCount]-pow(1,17)/(xLen*yLen*zLen);
       elemConcMaster[elemCount+(timePassed-1)*(divs*divs*divs)]=elemConc[elemCount];
      }    
-     else if (r==3 && (elemCount-divs*divs-1)>=0 && (elemCount-divs*divs-1)<divs*divs*divs)  {                                    
+     else if (r==3 && (elemCount-divs*divs-1)>=0 && (elemCount-divs*divs-1)<divs*divs*divs)  {                                   
      elemConc[elemCount-divs*divs-1]=elemConc[elemCount-divs*divs-1]+pow(1,17)/((xLen*yLen*zLen));
      elemConcMaster[elemCount-divs*divs-1+(timePassed-1)*divs*divs*divs]=elemConc[elemCount-divs*divs-1];                                
-
      elemConc[elemCount]=elemConc[elemCount]-pow(1,17)/(xLen*yLen*zLen);
      elemConcMaster[elemCount+(timePassed-1)*divs*divs*divs]=elemConc[elemCount];
      }
@@ -345,7 +345,7 @@ int diffusionmodel3dnewarray() {
       elemConc[elemCount]=elemConc[elemCount]-pow(1,17)/(xLen*yLen*zLen);
       elemConcMaster[elemCount+(timePassed-1)*divs*divs*divs]=elemConc[elemCount];
      }
-     else if (r==6 && (elemCount-divs*divs-1+divs)>=0 && (elemCount-divs*divs-1+divs)<divs*divs*divs) {                                    
+     else if (r==6 && (elemCount-divs*divs-1+divs)>=0 && (elemCount-divs*divs-1+divs)<divs*divs*divs) {                          
       elemConc[elemCount-divs*divs-1+divs] = elemConc[elemCount-divs*divs-1+divs]+pow(1,17)/(xLen*yLen*zLen);
       elemConcMaster[elemCount-divs*divs-1+divs+(timePassed-1)*divs*divs*divs]=elemConc[elemCount-divs*divs-1+divs];
        
@@ -359,8 +359,7 @@ int diffusionmodel3dnewarray() {
       elemConc[elemCount]=elemConc[elemCount]-pow(1,17)/(xLen*yLen*zLen);
       elemConcMaster[elemCount+(timePassed-1)*divs*divs*divs]= elemConc[elemCount];
      }
-     else if (r==8 && (elemCount-divs*divs+1+divs)>=0 && (elemCount-divs*divs+1+divs)<divs*divs*divs) {                                    
-      elemConc[elemCount-divs*divs+1+divs] = elemConc[elemCount-divs*divs+1+divs]+pow(1,17)/(xLen*yLen*zLen);
+     else if (r==8 && (elemCount-divs*divs+1+divs)>=0 && (elemCount-divs*divs+1+divs)<divs*divs*divs) {                                elemConc[elemCount-divs*divs+1+divs] = elemConc[elemCount-divs*divs+1+divs]+pow(1,17)/(xLen*yLen*zLen);
       elemConcMaster[elemCount-divs*divs+1+divs+(timePassed-1)*divs*divs*divs]=elemConc[elemCount-divs*divs+1+divs];
 
       elemConc[elemCount] = elemConc[elemCount]-pow(1,17)/(xLen*yLen*zLen);
@@ -471,15 +470,13 @@ int diffusionmodel3dnewarray() {
       elemConc[elemCount]=elemConc[elemCount]-pow(1,17)/(xLen*yLen*zLen);
       elemConcMaster[elemCount+(timePassed-1)*divs*divs*divs]=elemConc[elemCount];
      }
-     else if (r==25 && (elemCount+divs+divs*divs)>=0 && (elemCount+divs+divs*divs)<divs*divs*divs) {                                    
-      elemConc[elemCount+divs+divs*divs] = elemConc[elemCount+divs+divs*divs]+pow(1,17)/(xLen*yLen*zLen);
+     else if (r==25 && (elemCount+divs+divs*divs)>=0 && (elemCount+divs+divs*divs)<divs*divs*divs) {                                   elemConc[elemCount+divs+divs*divs] = elemConc[elemCount+divs+divs*divs]+pow(1,17)/(xLen*yLen*zLen);
       elemConcMaster[elemCount+divs+divs*divs+(timePassed-1)*divs*divs*divs]= elemConc[elemCount+divs+divs*divs];
 
       elemConc[elemCount]=elemConc[elemCount]-pow(1,17)/(xLen*yLen*zLen);
       elemConcMaster[elemCount+(timePassed-1)*divs*divs*divs]=elemConc[elemCount];
      }
-     else if (r==26 && (elemCount+divs+1+divs*divs)>=0 && (elemCount+divs+1+divs*divs)<divs*divs*divs) {                                    
-      elemConc[elemCount+divs+1+divs*divs]=elemConc[elemCount+divs+1+divs*divs]+pow(1,17)/(xLen*yLen*zLen);
+     else if (r==26 && (elemCount+divs+1+divs*divs)>=0 && (elemCount+divs+1+divs*divs)<divs*divs*divs) {                               elemConc[elemCount+divs+1+divs*divs]=elemConc[elemCount+divs+1+divs*divs]+pow(1,17)/(xLen*yLen*zLen);
       elemConcMaster[elemCount+1+divs+divs*divs+(timePassed-1)*divs*divs*divs]= elemConc[elemCount+divs+1+divs*divs];
 
       elemConc[elemCount]=elemConc[elemCount]-pow(1,17)/(xLen*yLen*zLen);
@@ -569,8 +566,6 @@ int diffusionmodel3dnewarray() {
 
 } //end bracket 4 int main(void)
   
-
-
 
 
 //ignore the below - it has not been checked fully.                        
