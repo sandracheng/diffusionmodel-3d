@@ -129,9 +129,9 @@ void diffusionmodel3dnewarray() {
  int n,b,v,p,c,s,f,g; //just counters.
  int moleculeCount;
  const double holderConc=47.3; //this is just a random conc for the outer first layer
- const int fakeAvogadroNum=pow(6,6); //representation of Avogadro's number, rounded
+ const int fakeAvogadroNum=pow(10,6); //representation of Avogadro's number, rounded
  //pow(6,23) renders the code unusable - I will try a million molecules and multiply
- //the results by pow(1,17)?
+ //the results by pow(10,17)?
 
  int frontFaceCounter=0;
  int moleculeFFCounter=0;
@@ -303,183 +303,188 @@ void diffusionmodel3dnewarray() {
      if (r==0 && (elemCount-divs*divs-1-divs)>=0 && (elemCount-divs*divs-1-divs)<divs*divs*divs) {   
      //if the elem exists, aka is between index 0 and divs*divs*divs-1 then run
                                  
-     //new conc of cube 0 relative to the elem=previous conc+(1molecule/totVol)
-     //new conc of the elem=previous conc-(1molecule/totVol).
+     //new conc of cube 0 relative to the elem=(previous conc molecules + 10^17 molecules)/totVol)
+     //new conc of the elem=(previous conc molecules - 10^17 molecules)/totVol).
      //update master array accordingly for both.
-      elemConc[elemCount-divs*divs-1-divs]= elemConc[elemCount-divs*divs-1-divs]+pow(1,17)/((xLen*yLen*zLen)); 
+      elemConc[elemCount-divs*divs-1-divs]= ((int)(elemConc[elemCount-divs*divs-1-divs]*(xLen*yLen*zLen)*fakeAvogadroNum)+pow(10,17))/(xLen*yLen*zLen);
       elemConcMaster[elemCount-divs*divs-1-divs+(timePassed-1)*divs*divs*divs]= elemConc[elemCount-divs*divs-1-divs];           
-      
-      elemConc[elemCount]= elemConc[elemCount]-pow(1,17)/((xLen*yLen*zLen));
+
+      elemConc[elemCount]= (moleculeInCube-pow(10,17))/(xLen*yLen*zLen);
       elemConcMaster[elemCount+(timePassed-1)*divs*divs*divs]=elemConc[elemCount];
      }                                                   
      else if (r==1 && (elemCount-divs*divs-divs)>=0 && (elemCount-divs*divs-divs)<divs*divs*divs) {                              
-      elemConc[elemCount-divs*divs-divs]=elemConc[elemCount-divs*divs-divs]+pow(1,17)/((xLen*yLen*zLen));
+      elemConc[elemCount-divs*divs-divs]= ((int)(elemConc[elemCount-divs*divs-divs]*(xLen*yLen*zLen)*fakeAvogadroNum)+pow(10,17))/(xLen*yLen*zLen);
       elemConcMaster[elemCount-divs*divs-divs+(timePassed-1)*(divs*divs*divs)]= elemConc[elemCount-divs*divs-divs];  
          
-      elemConc[elemCount]=elemConc[elemCount]-pow(1,17)/((xLen*yLen*zLen));
+      elemConc[elemCount]= (moleculeInCube-pow(10,17))/(xLen*yLen*zLen);
       elemConcMaster[elemCount+(timePassed-1)*divs*divs*divs]=elemConc[elemCount-divs*divs-divs];  
      }                 
-     else if (r==2 && (elemCount-divs*divs-divs+1)>=0 && (elemCount-divs*divs-divs+1)<divs*divs*divs) {                                elemConc[elemCount-divs*divs-divs+1]=elemConc[elemCount-divs*divs-divs+1]+pow(1,17)/((xLen*yLen*zLen));
+     else if (r==2 && (elemCount-divs*divs-divs+1)>=0 && (elemCount-divs*divs-divs+1)<divs*divs*divs) {    
+      elemConc[elemCount-divs*divs-divs+1]= ((int)(elemConc[elemCount-divs*divs-divs+1]*(xLen*yLen*zLen)*fakeAvogadroNum)+pow(10,17))/(xLen*yLen*zLen);
       elemConcMaster[elemCount-divs*divs-divs+1+(timePassed-1)*divs*divs*divs]= elemConc[elemCount-divs*divs-divs+1];
  
-      elemConc[elemCount]= elemConc[elemCount]-pow(1,17)/(xLen*yLen*zLen);
+      elemConc[elemCount]= (moleculeInCube-pow(10,17))/(xLen*yLen*zLen);
       elemConcMaster[elemCount+(timePassed-1)*(divs*divs*divs)]=elemConc[elemCount];
      }    
      else if (r==3 && (elemCount-divs*divs-1)>=0 && (elemCount-divs*divs-1)<divs*divs*divs)  {                                   
-     elemConc[elemCount-divs*divs-1]=elemConc[elemCount-divs*divs-1]+pow(1,17)/((xLen*yLen*zLen));
+     elemConc[elemCount-divs*divs-1]= ((int)(elemConc[elemCount-divs*divs-1]*(xLen*yLen*zLen)*fakeAvogadroNum)+pow(10,17))/(xLen*yLen*zLen);
      elemConcMaster[elemCount-divs*divs-1+(timePassed-1)*divs*divs*divs]=elemConc[elemCount-divs*divs-1];                                
-     elemConc[elemCount]=elemConc[elemCount]-pow(1,17)/(xLen*yLen*zLen);
+     
+     elemConc[elemCount]= (moleculeInCube-pow(10,17))/(xLen*yLen*zLen);
      elemConcMaster[elemCount+(timePassed-1)*divs*divs*divs]=elemConc[elemCount];
      }
      else if (r==4 && (elemCount-divs*divs)>=0 && (elemCount-divs*divs)<divs*divs*divs) {                                    
-     elemConc[elemCount-divs*divs]=elemConc[elemCount-divs*divs]+pow(1,17)/((xLen*yLen*zLen));
+     elemConc[elemCount-divs*divs]= ((int)(elemConc[elemCount-divs*divs]*(xLen*yLen*zLen)*fakeAvogadroNum)+pow(10,17))/(xLen*yLen*zLen);
      elemConcMaster[elemCount-divs*divs+(timePassed-1)*divs*divs*divs]=elemConc[elemCount-divs*divs];
 
-     elemConc[elemCount]=elemConc[elemCount]-pow(1,17)/(xLen*yLen*zLen);
+     elemConc[elemCount]= (moleculeInCube-pow(10,17))/(xLen*yLen*zLen);
      elemConcMaster[elemCount+(timePassed-1)*divs*divs*divs]= elemConc[elemCount];
      }
      else if (r==5 && (elemCount-divs*divs+1)>=0 && (elemCount-divs*divs+1)<divs*divs*divs) {                                    
-      elemConc[elemCount-divs*divs+1]=elemConc[elemCount-divs*divs+1]+pow(1,17)/(xLen*yLen*zLen); 
+      elemConc[elemCount-divs*divs+1]= ((int)(elemConc[elemCount-divs*divs+1]*(xLen*yLen*zLen)*fakeAvogadroNum)+pow(10,17))/(xLen*yLen*zLen);
       elemConcMaster[elemCount-divs*divs+1+(timePassed-1)*divs*divs*divs]=elemConc[elemCount-divs*divs+1];
 
-      elemConc[elemCount]=elemConc[elemCount]-pow(1,17)/(xLen*yLen*zLen);
+      elemConc[elemCount]= (moleculeInCube-pow(10,17))/(xLen*yLen*zLen);
       elemConcMaster[elemCount+(timePassed-1)*divs*divs*divs]=elemConc[elemCount];
      }
      else if (r==6 && (elemCount-divs*divs-1+divs)>=0 && (elemCount-divs*divs-1+divs)<divs*divs*divs) {                          
-      elemConc[elemCount-divs*divs-1+divs] = elemConc[elemCount-divs*divs-1+divs]+pow(1,17)/(xLen*yLen*zLen);
+      elemConc[elemCount-divs*divs-1+divs]= ((int)(elemConc[elemCount-divs*divs-1+divs]*(xLen*yLen*zLen)*fakeAvogadroNum)+pow(10,17))/(xLen*yLen*zLen);
       elemConcMaster[elemCount-divs*divs-1+divs+(timePassed-1)*divs*divs*divs]=elemConc[elemCount-divs*divs-1+divs];
        
-      elemConc[elemCount]=elemConc[elemCount]-pow(1,17)/(xLen*yLen*zLen);
+      elemConc[elemCount]= (moleculeInCube-pow(10,17))/(xLen*yLen*zLen);
       elemConcMaster[elemCount-divs*divs-1+divs+(timePassed-1)*divs*divs*divs]=elemConc[elemCount];
      }
      else if (r==7 && (elemCount-divs)>=0 && (elemCount-divs)<divs*divs*divs) {                                    
-      elemConc[elemCount-divs]=elemConc[elemCount-divs]+pow(1,17)/(xLen*yLen*zLen);
+      elemConc[elemCount-divs]= ((int)(elemConc[elemCount-divs]*(xLen*yLen*zLen)*fakeAvogadroNum)+pow(10,17))/(xLen*yLen*zLen);
       elemConcMaster[elemCount-divs+(timePassed-1)*divs*divs*divs]= elemConc[elemCount-divs];
 
-      elemConc[elemCount]=elemConc[elemCount]-pow(1,17)/(xLen*yLen*zLen);
+      elemConc[elemCount]= (moleculeInCube-pow(10,17))/(xLen*yLen*zLen);
       elemConcMaster[elemCount+(timePassed-1)*divs*divs*divs]= elemConc[elemCount];
      }
-     else if (r==8 && (elemCount-divs*divs+1+divs)>=0 && (elemCount-divs*divs+1+divs)<divs*divs*divs) {                                elemConc[elemCount-divs*divs+1+divs] = elemConc[elemCount-divs*divs+1+divs]+pow(1,17)/(xLen*yLen*zLen);
+     else if (r==8 && (elemCount-divs*divs+1+divs)>=0 && (elemCount-divs*divs+1+divs)<divs*divs*divs) {                              
+      elemConc[elemCount-divs*divs+1+divs]= ((int)(elemConc[elemCount-divs*divs+1+divs]*(xLen*yLen*zLen)*fakeAvogadroNum)+pow(10,17))/(xLen*yLen*zLen);
       elemConcMaster[elemCount-divs*divs+1+divs+(timePassed-1)*divs*divs*divs]=elemConc[elemCount-divs*divs+1+divs];
 
-      elemConc[elemCount] = elemConc[elemCount]-pow(1,17)/(xLen*yLen*zLen);
+      elemConc[elemCount]= (moleculeInCube-pow(10,17))/(xLen*yLen*zLen);
       elemConcMaster[elemCount+(timePassed-1)*divs*divs*divs]=elemConc[elemCount];
      }
      else if (r==9 && (elemCount-1-divs)>=0 && (elemCount-1-divs)<divs*divs*divs) {                                    
-      elemConc[elemCount-1-divs] = elemConc[elemCount-1-divs]+pow(1,17)/(xLen*yLen*zLen);
+      elemConc[elemCount-1-divs]= ((int)(elemConc[elemCount-1-divs]*(xLen*yLen*zLen)*fakeAvogadroNum)+pow(10,17))/(xLen*yLen*zLen);
       elemConcMaster[elemCount-divs-1+(timePassed-1)*divs*divs*divs]=elemConc[elemCount-divs-1];
 
-      elemConc[elemCount] = elemConc[elemCount]-pow(1,17)/(xLen*yLen*zLen);
+      elemConc[elemCount]= (moleculeInCube-pow(10,17))/(xLen*yLen*zLen);
       elemConcMaster[elemCount+(timePassed-1)*divs*divs*divs]=elemConc[elemCount];
      }                                            
      else if (r==10 && (elemCount-divs)>=0 && (elemCount-divs)<divs*divs*divs) {                                    
-      elemConc[elemCount-divs]=elemConc[elemCount-divs]+pow(1,17)/(xLen*yLen*zLen);
+      elemConc[elemCount-divs]= ((int)(elemConc[elemCount-divs]*(xLen*yLen*zLen)*fakeAvogadroNum)+pow(10,17))/(xLen*yLen*zLen);
       elemConcMaster[elemCount-divs+(timePassed-1)*divs*divs*divs]=elemConc[elemCount-divs];
 
-      elemConc[elemCount]=elemConc[elemCount]-pow(1,17)/(xLen*yLen*zLen);
+      elemConc[elemCount]= (moleculeInCube-pow(10,17))/(xLen*yLen*zLen);
       elemConcMaster[elemCount+(timePassed-1)*divs*divs*divs]=elemConc[elemCount];
      }
      else if (r==11 && (elemCount+1-divs)>=0 && (elemCount+1-divs)<divs*divs*divs) {                                    
-      elemConc[elemCount+1-divs]=elemConc[elemCount+1-divs]+pow(1,17)/(xLen*yLen*zLen);
+      elemConc[elemCount+1-divs]= ((int)(elemConc[elemCount+1-divs]*(xLen*yLen*zLen)*fakeAvogadroNum)+pow(10,17))/(xLen*yLen*zLen);
       elemConcMaster[elemCount-divs+1+(timePassed-1)*divs*divs*divs]=elemConc[elemCount-divs+1];
 
-      elemConc[elemCount]=elemConc[elemCount]-pow(1,17)/(xLen*yLen*zLen);
+      elemConc[elemCount]= (moleculeInCube-pow(10,17))/(xLen*yLen*zLen);
       elemConcMaster[elemCount+(timePassed-1)*divs*divs*divs]=elemConc[elemCount];
      }
      else if (r==12 && (elemCount-1)>=0 && (elemCount-1)<divs*divs*divs) {                                    
-      elemConc[elemCount-1]=elemConc[elemCount-1]+pow(1,17)/(xLen*yLen*zLen);
+      elemConc[elemCount-1]= ((int)(elemConc[elemCount-1]*(xLen*yLen*zLen)*fakeAvogadroNum)+pow(10,17))/(xLen*yLen*zLen);
       elemConcMaster[elemCount-1+(timePassed-1)*divs*divs*divs]=elemConc[elemCount-1];
 
-      elemConc[elemCount]=elemConc[elemCount]-pow(1,17)/(xLen*yLen*zLen);
+      elemConc[elemCount]= (moleculeInCube-pow(10,17))/(xLen*yLen*zLen);
       elemConcMaster[elemCount+(timePassed-1)*divs*divs*divs]=elemConc[elemCount];
      }                 
      else if (r==14 && (elemCount+1)>=0 && (elemCount+1)<divs*divs*divs) {                                    
-      elemConc[elemCount+1] = elemConc[elemCount+1]+pow(1,17)/(xLen*yLen*zLen);
+      elemConc[elemCount+1]= ((int)(elemConc[elemCount+1]*(xLen*yLen*zLen)*fakeAvogadroNum)+pow(10,17))/(xLen*yLen*zLen);
       elemConcMaster[elemCount+1+(timePassed-1)*divs*divs*divs]=elemConc[elemCount+1];
 
-      elemConc[elemCount]=elemConc[elemCount]-pow(1,17)/(xLen*yLen*zLen);
+      elemConc[elemCount]= (moleculeInCube-pow(10,17))/(xLen*yLen*zLen);
       elemConcMaster[elemCount+(timePassed-1)*divs*divs*divs]=elemConc[elemCount];
      }
      else if (r==15 && (elemCount+divs-1)>=0 && (elemCount+divs-1)<divs*divs*divs) {                                    
-      elemConc[elemCount+divs-1]=elemConc[elemCount+divs-1]+pow(1,17)/(xLen*yLen*zLen);
+      elemConc[elemCount+divs-1]= ((int)(elemConc[elemCount+divs-1]*(xLen*yLen*zLen)*fakeAvogadroNum)+pow(10,17))/(xLen*yLen*zLen);
       elemConcMaster[elemCount+divs-1+(timePassed-1)*divs*divs*divs]=elemConc[elemCount+divs-1];
 
-      elemConc[elemCount]=elemConc[elemCount]-pow(1,17)/(xLen*yLen*zLen);
+      elemConc[elemCount]= (moleculeInCube-pow(10,17))/(xLen*yLen*zLen);
       elemConcMaster[elemCount+(timePassed-1)*divs*divs*divs]=elemConc[elemCount];
      }
      else if (r==16 && (elemCount+divs)>=0 && (elemCount+divs)<divs*divs*divs) {                                    
-      elemConc[elemCount+divs]=elemConc[elemCount+divs]+pow(1,17)/(xLen*yLen*zLen);
+      elemConc[elemCount+divs]= ((int)(elemConc[elemCount+divs]*(xLen*yLen*zLen)*fakeAvogadroNum)+pow(10,17))/(xLen*yLen*zLen);
       elemConcMaster[elemCount+divs+(timePassed-1)*divs*divs*divs]=elemConc[elemCount+divs];
 
-      elemConc[elemCount]=elemConc[elemCount]-pow(1,17)/(xLen*yLen*zLen);
+      elemConc[elemCount]= (moleculeInCube-pow(10,17))/(xLen*yLen*zLen);
       elemConcMaster[elemCount+(timePassed-1)*divs*divs*divs]=elemConc[elemCount];
      }
      else if (r==17 && (elemCount+divs+1)>=0 && (elemCount+divs+1)<divs*divs*divs) {                                    
-      elemConc[elemCount+divs+1] = elemConc[elemCount+divs+1]+pow(1,17)/(xLen*yLen*zLen);
+      elemConc[elemCount+divs+1]= ((int)(elemConc[elemCount+divs+1]*(xLen*yLen*zLen)*fakeAvogadroNum)+pow(10,17))/(xLen*yLen*zLen);
       elemConcMaster[elemCount+divs+1+(timePassed-1)*divs*divs*divs]=elemConc[elemCount+divs+1];
 
-      elemConc[elemCount]=elemConc[elemCount]-pow(1,17)/(xLen*yLen*zLen);
+      elemConc[elemCount]= (moleculeInCube-pow(10,17))/(xLen*yLen*zLen);
       elemConcMaster[elemCount+(timePassed-1)*divs*divs*divs]=elemConc[elemCount];
      }
      else if (r==18 && (elemCount-1-divs+divs*divs)>=0 && (elemCount-1-divs+divs*divs)<divs*divs*divs) {                                    
-      elemConc[elemCount-1-divs+divs*divs] = elemConc[elemCount-1+divs*divs-divs]+pow(1,17)/(xLen*yLen*zLen);
+      elemConc[elemCount-1-divs+divs*divs]= ((int)(elemConc[elemCount-1-divs+divs*divs]*(xLen*yLen*zLen)*fakeAvogadroNum)+pow(10,17))/(xLen*yLen*zLen);
       elemConcMaster[elemCount-1-divs+divs*divs+(timePassed-1)*divs*divs*divs]=elemConc[elemCount-1-divs+divs*divs];
 
-      elemConc[elemCount]=elemConc[elemCount]-pow(1,17)/(xLen*yLen*zLen);
+      elemConc[elemCount]= (moleculeInCube-pow(10,17))/(xLen*yLen*zLen);
       elemConcMaster[elemCount+(timePassed-1)*divs*divs*divs]=elemConc[elemCount];
      }
      else if (r==19 && (elemCount+divs*divs-divs)>=0 && (elemCount+divs*divs-divs)<divs*divs*divs) {                                    
-      elemConc[elemCount+divs*divs-divs]=elemConc[elemCount+divs*divs-divs]+pow(1,17)/(xLen*yLen*zLen);
+      elemConc[elemCount+divs*divs-divs]= ((int)(elemConc[elemCount-divs+divs*divs]*(xLen*yLen*zLen)*fakeAvogadroNum)+pow(10,17))/(xLen*yLen*zLen);
       elemConcMaster[elemCount-divs+divs*divs+(timePassed-1)*divs*divs*divs]=elemConc[elemCount-divs+divs*divs];
 
-      elemConc[elemCount] =elemConc[elemCount]-pow(1,17)/(xLen*yLen*zLen);
+      elemConc[elemCount]= (moleculeInCube-pow(10,17))/(xLen*yLen*zLen);
       elemConcMaster[elemCount+(timePassed-1)*divs*divs*divs]=elemConc[elemCount];
      }
      else if (r==20 && (elemCount+1+divs*divs-divs)>=0 && (elemCount+1+divs*divs-divs)<divs*divs*divs) {                                   
-      elemConc[elemCount+1+divs*divs-divs]=elemConc[elemCount+1+divs*divs-divs]+pow(1,17)/(xLen*yLen*zLen);
+      elemConc[elemCount+1+divs*divs-divs]= ((int)(elemConc[elemCount+1-divs+divs*divs]*(xLen*yLen*zLen)*fakeAvogadroNum)+pow(10,17))/(xLen*yLen*zLen);
       elemConcMaster[elemCount-divs+divs*divs+1+(timePassed-1)*divs*divs*divs]= elemConc[elemCount-divs+divs*divs+1];
 
-      elemConc[elemCount]=elemConc[elemCount]-pow(1,17)/(xLen*yLen*zLen);
+      elemConc[elemCount]= (moleculeInCube-pow(10,17))/(xLen*yLen*zLen);
       elemConcMaster[elemCount+(timePassed-1)*divs*divs*divs]=elemConc[elemCount];
      }
      else if (r==21 && (elemCount-1+divs*divs)>=0 && (elemCount-1+divs*divs)<divs*divs*divs) {                                    
-      elemConc[elemCount-1+divs*divs] = elemConc[elemCount-1+divs*divs]+pow(1,17)/((xLen*yLen*zLen));
+      elemConc[elemCount-1+divs*divs]= ((int)(elemConc[elemCount-1+divs*divs]*(xLen*yLen*zLen)*fakeAvogadroNum)+pow(10,17))/(xLen*yLen*zLen);
       elemConcMaster[elemCount-1+divs*divs+(timePassed-1)*divs*divs*divs]=elemConc[elemCount-1+divs*divs];
 
-      elemConc[elemCount] = elemConc[elemCount]-pow(1,17)/(xLen*yLen*zLen);
+      elemConc[elemCount]= (moleculeInCube-pow(10,17))/(xLen*yLen*zLen);
       elemConcMaster[elemCount+(timePassed-1)*divs*divs*divs]=elemConc[elemCount];
      }
      else if (r==22 && (elemCount+divs*divs>=0) && (elemCount+divs*divs<divs*divs*divs)) {                                    
-      elemConc[elemCount+divs*divs] = elemConc[elemCount+divs*divs]+pow(1,17)/(xLen*yLen*zLen);
+      elemConc[elemCount+divs*divs]= ((int)(elemConc[elemCount+divs*divs]*(xLen*yLen*zLen)*fakeAvogadroNum)+pow(10,17))/(xLen*yLen*zLen);
       elemConcMaster[elemCount+divs*divs+(timePassed-1)*divs*divs*divs]= elemConc[elemCount+divs*divs];
 
-      elemConc[elemCount]=elemConc[elemCount]-pow(1,17)/(xLen*yLen*zLen);
+      elemConc[elemCount]= (moleculeInCube-pow(10,17))/(xLen*yLen*zLen);
       elemConcMaster[elemCount+(timePassed-1)*divs*divs*divs]=elemConc[elemCount];
      }                               
      else if (r==23 && (elemCount+divs*divs+1)>=0 && (elemCount+divs*divs+1)<divs*divs*divs) {                                   
-      elemConc[elemCount+divs*divs+1]=elemConc[elemCount+divs*divs+1]+pow(1,17)/((xLen*yLen*zLen));
+      elemConc[elemCount+divs*divs+1]= ((int)(elemConc[elemCount+divs*divs+1]*(xLen*yLen*zLen)*fakeAvogadroNum)+pow(10,17))/(xLen*yLen*zLen);
       elemConcMaster[elemCount+divs*divs+1+(timePassed-1)*divs*divs*divs]=elemConc[elemCount+divs*divs+1];
 
-      elemConc[elemCount]=elemConc[elemCount]-pow(1,17)/((xLen*yLen*zLen));
+      elemConc[elemCount]= (moleculeInCube-pow(10,17))/(xLen*yLen*zLen);
       elemConcMaster[elemCount+(timePassed-1)*divs*divs*divs]=elemConc[elemCount];
      }
      else if (r==24 && (elemCount-divs+divs*divs+1)>=0 && (elemCount-divs+divs*divs+1)<divs*divs*divs) {                                    
-      elemConc[elemCount-divs+divs*divs+1]=elemConc[elemCount+divs*divs-divs+1]+pow(1,17)/(xLen*yLen*zLen);
+      elemConc[elemCount-divs+divs*divs+1]= ((int)(elemConc[elemCount-divs+divs*divs+1]*(xLen*yLen*zLen)*fakeAvogadroNum)+pow(10,17))/(xLen*yLen*zLen);
       elemConcMaster[elemCount-divs+divs*divs+1+(timePassed-1)*divs*divs*divs]=elemConc[elemCount-divs+divs*divs+1];
 
-      elemConc[elemCount]=elemConc[elemCount]-pow(1,17)/(xLen*yLen*zLen);
+      elemConc[elemCount]= (moleculeInCube-pow(10,17))/(xLen*yLen*zLen);
       elemConcMaster[elemCount+(timePassed-1)*divs*divs*divs]=elemConc[elemCount];
      }
-     else if (r==25 && (elemCount+divs+divs*divs)>=0 && (elemCount+divs+divs*divs)<divs*divs*divs) {                                   elemConc[elemCount+divs+divs*divs] = elemConc[elemCount+divs+divs*divs]+pow(1,17)/(xLen*yLen*zLen);
+     else if (r==25 && (elemCount+divs+divs*divs)>=0 && (elemCount+divs+divs*divs)<divs*divs*divs) {      
+      elemConc[elemCount+divs+divs*divs]= ((int)(elemConc[elemCount+divs+divs*divs]*(xLen*yLen*zLen)*fakeAvogadroNum)+pow(10,17))/(xLen*yLen*zLen);
       elemConcMaster[elemCount+divs+divs*divs+(timePassed-1)*divs*divs*divs]= elemConc[elemCount+divs+divs*divs];
 
-      elemConc[elemCount]=elemConc[elemCount]-pow(1,17)/(xLen*yLen*zLen);
+      elemConc[elemCount]= (moleculeInCube-pow(10,17))/(xLen*yLen*zLen);
       elemConcMaster[elemCount+(timePassed-1)*divs*divs*divs]=elemConc[elemCount];
      }
-     else if (r==26 && (elemCount+divs+1+divs*divs)>=0 && (elemCount+divs+1+divs*divs)<divs*divs*divs) {                               elemConc[elemCount+divs+1+divs*divs]=elemConc[elemCount+divs+1+divs*divs]+pow(1,17)/(xLen*yLen*zLen);
+     else if (r==26 && (elemCount+divs+1+divs*divs)>=0 && (elemCount+divs+1+divs*divs)<divs*divs*divs) {                              
+      elemConc[elemCount+divs+1+divs*divs]= ((int)(elemConc[elemCount+divs+1+divs*divs]*(xLen*yLen*zLen)*fakeAvogadroNum)+pow(10,17))/(xLen*yLen*zLen);
       elemConcMaster[elemCount+1+divs+divs*divs+(timePassed-1)*divs*divs*divs]= elemConc[elemCount+divs+1+divs*divs];
 
-      elemConc[elemCount]=elemConc[elemCount]-pow(1,17)/(xLen*yLen*zLen);
+      elemConc[elemCount]= (moleculeInCube-pow(10,17))/(xLen*yLen*zLen);
       elemConcMaster[elemCount+(timePassed-1)*divs*divs*divs]=elemConc[elemCount];
      }
      else if (r==13){   //for r=13, where the molecule stays put                                  
