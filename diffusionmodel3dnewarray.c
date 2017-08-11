@@ -94,7 +94,7 @@
 
 void diffusionmodel3dnewarray() {                                                                    
  const int divs=5;//n.o. elements aka n.o. divisions in the big acrylic "cube"
- const int totTime=5;
+ const int totTime=50;
  //const int timestep=1; 
  int timePassed;
           
@@ -104,8 +104,16 @@ void diffusionmodel3dnewarray() {
  double yTotLen =0.00617;
  double zTotLen =0.20320;
 
+ //x,y,and z lengths of each cube
+ double xLen= xTotLen/divs; 
+ double yLen= yTotLen/divs;
+ double zLen= zTotLen/divs;
+
+ //volume of each element 
+ double elemVol= xLen*yLen*zLen;
  double maxConc= 0.0262599/(xTotLen*yTotLen*zTotLen); //max conc of water in moles/unit volume. 
  //the decimal # is given by (2% of acrylic in mass) divided by water's molecular weight
+ 
  double elemConc[divs*divs*divs]; //array for current conc in each element
                                   //each element is defined by its position
  double elemConcMaster[divs*divs*divs*totTime];  //updated array that
@@ -118,21 +126,22 @@ void diffusionmodel3dnewarray() {
  int x,y,z; //counter for the x,y and z  positions for the 2nd layer
  int elemCount; //counter for the total number of elements
 
- // x,y,and z lengths of each cube
- double xLen= xTotLen/divs; 
- double yLen= yTotLen/divs;
- double zLen= zTotLen/divs;
-
-
- int moleculeInCube;
- const int scndLayerCount = divs-2; //counter for the second outside layer
+ const int scndLayerCount= divs-2; //counter for the second outside layer
  int n,b,v,p,c,s,f,g; //just counters.
  int moleculeCount;
- const double holderConc=47.3; //this is just a random conc for the outer first layer
- const int fakeAvogadroNum=pow(10,6); //representation of Avogadro's number, rounded
- //pow(6,23) renders the code unusable - I will try a million molecules and multiply
- //the results by pow(10,17)?
- const int trueAvogadroNum=pow(10,23); 
+ const double holderConc=0.003; //this is just a random conc for the outer first layer
+
+ //imagine having 'leader' molecules and 'follower' molecules
+ //wherever the leader molecules go, their group follows...
+ //fakeAvoNum is the number of leader molecules, and 10^23/fakeAvoNum = follower molecules 
+ //need to implement this cause can't loop for 10^23 times.
+ 
+ const double fakeAvoNum=pow(10,5); //representation of Avogadro's number, number of leaders
+ int moleculeGrpInCube; //number of molecule groups led by 'leaders' followed by 'followers' in elem0
+ const double truAvoNum=pow(10,23); //the real magnitude of Avogadro's number.
+ const double followerMolecules= truAvoNum/fakeAvoNum; //number of followers
+
+ int chosenElem; //the elem that the lead (and so the follower) molecules 'choose' to go into
 
  int frontFaceCounter=0;
  int moleculeFFCounter=0;
@@ -144,7 +153,6 @@ void diffusionmodel3dnewarray() {
 
  TH1* h1 = new TH1D("Legend","Title", nBins,lowlim,uplim);
  h1->SetFillColor(kOrange);
-
 
 // double DcoeffAir; //diffusion constant for saturated acrylic in dry are
 // double airTime; //time it has been out in air; not sure if need
@@ -167,7 +175,6 @@ void diffusionmodel3dnewarray() {
     elemConcMaster[elemCount+(timePassed-1)*divs*divs*divs]=holderConc;
    } 
 
-
    for (j=0; j<divs; j++) {    
     for (k=0; k<divs*divs; k++) {
      if (k<divs) {
@@ -177,10 +184,10 @@ void diffusionmodel3dnewarray() {
       elemConc[j*divs*divs+k*divs+divs-1]= holderConc;  //for right face
       elemConcMaster[j*divs*divs+k*divs+divs-1+(timePassed-1)*divs*divs*divs]=holderConc;
 
-      elemConc[j*divs*divs+k] = holderConc; //for bottom face
+      elemConc[j*divs*divs+k]= holderConc; //for bottom face
       elemConcMaster[j*divs*divs+k+(timePassed-1)*divs*divs*divs]=holderConc;
      }
-     else if (k >= divs*(divs-1)) {
+     else if (k>=divs*(divs-1)) {
       elemConc[j*divs*divs+k]= holderConc; //for top face
       elemConcMaster[j*divs*divs+k+(timePassed-1)*divs*divs*divs]=holderConc;
      }
@@ -190,17 +197,17 @@ void diffusionmodel3dnewarray() {
    for (z=0; z<scndLayerCount;z++) {
     for (y=0; y<scndLayerCount;y++) {
     
-//     if (0<z && z<scndLayerCount-3 && 0<y && y<scndLayerCount-3 && timePassed==0) { 
-//     elemConc[divs*(divs+z+1)+y+1]=0;   //3rd layer front face                              
- //    elemConc[divs*(divs*scndLayerCount+z+1)+y+1]= 0;   //3rd layer of other faces                              
-//     }
+     if (0<z && z<scndLayerCount-3 && 0<y && y<scndLayerCount-3) { 
+      elemConc[divs*(divs+z+1)+y+1]=0;   //2nd layer front face                              
+      elemConc[divs*(divs*scndLayerCount+z+1)+y+1]= 0;   //2nd layer other faces                              
+     }
 
-     if (0<z && z>scndLayerCount-3 && 0<y && y<scndLayerCount-3 && timePassed==0) {
-     elemConc[divs*(divs+z+1)+y+1]=maxConc;   //2nd layer front face                              
-     elemConcMaster[divs*(divs+z+1)+y+1+(timePassed-1)*divs*divs*divs]=maxConc;
- 
-     elemConc[divs*(divs*scndLayerCount+z+1)+y+1]= maxConc;   //2nd layer back face                              
-     elemConcMaster[divs*(divs*scndLayerCount+z+1)+y+1+(timePassed-1)*divs*divs*divs]= maxConc;
+     if (0<z && z<scndLayerCount-3 && 0<y && y<scndLayerCount-3) { 
+      elemConc[divs*(divs+z+1)+y+1]=maxConc;   //2nd layer front face                              
+      elemConcMaster[divs*(divs+z+1)+y+1+(timePassed-1)*divs*divs*divs]=maxConc;
+
+      elemConc[divs*(divs*scndLayerCount+z+1)+y+1]= maxConc;   //2nd layer back face                              
+      elemConcMaster[divs*(divs*scndLayerCount+z+1)+y+1+(timePassed-1)*divs*divs*divs]= maxConc;
      }
 
      if (z==0 && y==0) {
@@ -210,6 +217,7 @@ void diffusionmodel3dnewarray() {
 
         elemConc[divs*(divs+1)+1+n_r+divs*b]= maxConc; //2nd layer left face
         elemConcMaster[divs*(divs+1)+1+n_r+divs*b+(timePassed-1)*divs*divs*divs]=maxConc;  
+       
        }
       }
       for (v=0;v<scndLayerCount;v++){
@@ -244,25 +252,36 @@ void diffusionmodel3dnewarray() {
       }
      } //end bracket for z==scndLayerCount-1 and y==0
     }
-   }
-
-// cout << "time: "<< timePassed << " elem: " << elemCount << " elem conc: " << elemConc[elemCount] << endl;
+   }        
+                                                     
+//cout << "time: "<< timePassed << " elem: " << elemCount << " elem conc: " << elemConc[elemCount] << endl;
 //up to here the initialization values are corrrrrrrrect yay
   }  //end bracket for first elemCount                                                         
 
   for (elemCount=0; elemCount<divs*divs*divs; elemCount++) {                  
-//   printf("elem:%d; elem conc: %f\n", elemCount, elemConc[elemCount]); // works! 
-       
- //make random walk occur for all layers but the first; just reset the 2nd layer
- //every timestep
-   if (elemConcMaster[elemCount]!=holderConc) {   
-    moleculeInCube = (int)(elemConc[elemCount]*(xLen*yLen*zLen)*fakeAvogadroNum); 
-   
-    for (moleculeCount=1; moleculeCount<= moleculeInCube; moleculeCount++){                     
+//  printf("elem:%d; elem conc: %f\n", elemCount, elemConc[elemCount]); // works!  
+
+   moleculeGrpInCube = (int)(elemConc[elemCount]*elemVol*fakeAvoNum);
+   chosenElem=0; //reset to 0 every element count loop. 
+ 
+//make random walk occur for all layers but the first; just reset the 2nd layer
+//every timestep
+   if (elemConcMaster[elemCount]!=holderConc) {
+    for (moleculeCount=1; moleculeCount<=moleculeGrpInCube; moleculeCount++){                     
 /* need to know position of the 26 surrounding cube elements. will name it 
    by the number scheme as above, with elements labelled 0 to 26.
    The central cube number is 13                   
-                  
+   
+   slices of a front-facing cube:
+   
+   1st             2nd             3rd
+   -----------     ------------    -----------
+   |6   7   8|     |15  16  17|    |24  25  26|
+   |3   4   5|     |12  13  14|    |21  22  23|
+   |0   1   2|     |9   10  11|    |18  19  20|
+   -----------     ------------    ------------
+
+               
    cube13= elemConc[elemCount];              main cube             
    cube12= elemConc[elemCount-1];            left        
    cube14= elemConc[elemCount+1];            right
@@ -291,12 +310,14 @@ void diffusionmodel3dnewarray() {
    cube25= elemConc[elemCount+divs+divs*divs];
    cube26= elemConc[elemCount+divs+1+divs*divs];                         */ 
 
+ // cout << elemCount << " " << elemConc[elemCount] << endl;
     unsigned int StartSeed;
     gRandom->SetSeed(StartSeed);
-
+        
     Int_t r = (gRandom->Rndm())*27; 
 //    cout << timePassed << " " << elemCount << " "  << moleculeCount << " " << r << endl;
-
+//    cout << r << " moleculeCount:" << moleculeCount << "/" << moleculeGrpInCube << endl; 
+   
     //above is a PRNG to get an int from [0, 27-1]
     //for each molecule to move into one of the adjacent 26 cubes or stay.
     //all if statements match the random number to the cube it moves to
@@ -304,216 +325,114 @@ void diffusionmodel3dnewarray() {
      if (r==0 && (elemCount-divs*divs-1-divs)>=0 && (elemCount-divs*divs-1-divs)<divs*divs*divs) {   
      //if the elem exists, aka is between index 0 and divs*divs*divs-1 then run
                                  
-     //new conc of cube 0 relative to the elem=(previous conc molecules + 10^17 molecules)/totVol)
-     //new conc of the elem=(previous conc molecules - 10^17 molecules)/totVol).
-     //update master array accordingly for both.
-      elemConc[elemCount-divs*divs-1-divs]= ((int)(elemConc[elemCount-divs*divs-1-divs]*(xLen*yLen*zLen)*fakeAvogadroNum)+pow(10,17))/(xLen*yLen*zLen*trueAvogadroNum);
-      elemConcMaster[elemCount-divs*divs-1-divs+(timePassed-1)*divs*divs*divs]= elemConc[elemCount-divs*divs-1-divs];           
-
-      elemConc[elemCount]= (moleculeInCube-pow(10,17))/(xLen*yLen*zLen*trueAvogadroNum);
-      elemConcMaster[elemCount+(timePassed-1)*divs*divs*divs]=elemConc[elemCount];
+     //Ed says to scale outside the if statements. So let's just choose the element only.
+     //at end of if statements, change concs of both elems and update master array for both... 
+      chosenElem= elemCount-divs*divs-1-divs;
      }                                                   
-     else if (r==1 && (elemCount-divs*divs-divs)>=0 && (elemCount-divs*divs-divs)<divs*divs*divs) {                              
-      elemConc[elemCount-divs*divs-divs]= ((int)(elemConc[elemCount-divs*divs-divs]*(xLen*yLen*zLen)*fakeAvogadroNum)+pow(10,17))/(xLen*yLen*zLen*trueAvogadroNum);
-      elemConcMaster[elemCount-divs*divs-divs+(timePassed-1)*(divs*divs*divs)]= elemConc[elemCount-divs*divs-divs];  
-         
-      elemConc[elemCount]= (moleculeInCube-pow(10,17))/(xLen*yLen*zLen*trueAvogadroNum);
-      elemConcMaster[elemCount+(timePassed-1)*divs*divs*divs]=elemConc[elemCount-divs*divs-divs];  
+     else if (r==1 && (elemCount-divs*divs-divs)>=0 && (elemCount-divs*divs-divs)<divs*divs*divs) {                               
+      chosenElem= elemCount-divs*divs-1-divs;
      }                 
      else if (r==2 && (elemCount-divs*divs-divs+1)>=0 && (elemCount-divs*divs-divs+1)<divs*divs*divs) {    
-      elemConc[elemCount-divs*divs-divs+1]= ((int)(elemConc[elemCount-divs*divs-divs+1]*(xLen*yLen*zLen)*fakeAvogadroNum)+pow(10,17))/(xLen*yLen*zLen*trueAvogadroNum);
-      elemConcMaster[elemCount-divs*divs-divs+1+(timePassed-1)*divs*divs*divs]= elemConc[elemCount-divs*divs-divs+1];
- 
-      elemConc[elemCount]= (moleculeInCube-pow(10,17))/(xLen*yLen*zLen*trueAvogadroNum);
-      elemConcMaster[elemCount+(timePassed-1)*(divs*divs*divs)]=elemConc[elemCount];
+      chosenElem= elemCount-divs*divs-divs+1;
      }    
-     else if (r==3 && (elemCount-divs*divs-1)>=0 && (elemCount-divs*divs-1)<divs*divs*divs)  {                                   
-     elemConc[elemCount-divs*divs-1]= ((int)(elemConc[elemCount-divs*divs-1]*(xLen*yLen*zLen)*fakeAvogadroNum)+pow(10,17))/(xLen*yLen*zLen*trueAvogadroNum);
-     elemConcMaster[elemCount-divs*divs-1+(timePassed-1)*divs*divs*divs]=elemConc[elemCount-divs*divs-1];                                
-     
-     elemConc[elemCount]= (moleculeInCube-pow(10,17))/(xLen*yLen*zLen*trueAvogadroNum);
-     elemConcMaster[elemCount+(timePassed-1)*divs*divs*divs]=elemConc[elemCount];
+     else if (r==3 && (elemCount-divs*divs-1)>=0 && (elemCount-divs*divs-1)<divs*divs*divs)  {                                    
+      chosenElem= elemCount-divs*divs-1;
      }
      else if (r==4 && (elemCount-divs*divs)>=0 && (elemCount-divs*divs)<divs*divs*divs) {                                    
-     elemConc[elemCount-divs*divs]= ((int)(elemConc[elemCount-divs*divs]*(xLen*yLen*zLen)*fakeAvogadroNum)+pow(10,17))/(xLen*yLen*zLen*trueAvogadroNum);
-     elemConcMaster[elemCount-divs*divs+(timePassed-1)*divs*divs*divs]=elemConc[elemCount-divs*divs];
-
-     elemConc[elemCount]= (moleculeInCube-pow(10,17))/(xLen*yLen*zLen*trueAvogadroNum);
-     elemConcMaster[elemCount+(timePassed-1)*divs*divs*divs]= elemConc[elemCount];
+      chosenElem= elemCount-divs*divs;
      }
      else if (r==5 && (elemCount-divs*divs+1)>=0 && (elemCount-divs*divs+1)<divs*divs*divs) {                                    
-      elemConc[elemCount-divs*divs+1]= ((int)(elemConc[elemCount-divs*divs+1]*(xLen*yLen*zLen)*fakeAvogadroNum)+pow(10,17))/(xLen*yLen*zLen*trueAvogadroNum);
-      elemConcMaster[elemCount-divs*divs+1+(timePassed-1)*divs*divs*divs]=elemConc[elemCount-divs*divs+1];
-
-      elemConc[elemCount]= (moleculeInCube-pow(10,17))/(xLen*yLen*zLen*trueAvogadroNum);
-      elemConcMaster[elemCount+(timePassed-1)*divs*divs*divs]=elemConc[elemCount];
+      chosenElem= elemCount-divs*divs+1;
      }
      else if (r==6 && (elemCount-divs*divs-1+divs)>=0 && (elemCount-divs*divs-1+divs)<divs*divs*divs) {                          
-      elemConc[elemCount-divs*divs-1+divs]= ((int)(elemConc[elemCount-divs*divs-1+divs]*(xLen*yLen*zLen)*fakeAvogadroNum)+pow(10,17))/(xLen*yLen*zLen*trueAvogadroNum);
-      elemConcMaster[elemCount-divs*divs-1+divs+(timePassed-1)*divs*divs*divs]=elemConc[elemCount-divs*divs-1+divs];
-       
-      elemConc[elemCount]= (moleculeInCube-pow(10,17))/(xLen*yLen*zLen*trueAvogadroNum);
-      elemConcMaster[elemCount-divs*divs-1+divs+(timePassed-1)*divs*divs*divs]=elemConc[elemCount];
+      chosenElem= elemCount-divs*divs-1+divs;
      }
-     else if (r==7 && (elemCount-divs)>=0 && (elemCount-divs)<divs*divs*divs) {                                    
-      elemConc[elemCount-divs]= ((int)(elemConc[elemCount-divs]*(xLen*yLen*zLen)*fakeAvogadroNum)+pow(10,17))/(xLen*yLen*zLen*trueAvogadroNum);
-      elemConcMaster[elemCount-divs+(timePassed-1)*divs*divs*divs]= elemConc[elemCount-divs];
-
-      elemConc[elemCount]= (moleculeInCube-pow(10,17))/(xLen*yLen*zLen*trueAvogadroNum);
-      elemConcMaster[elemCount+(timePassed-1)*divs*divs*divs]= elemConc[elemCount];
+     else if (r==7 && (elemCount-divs*divs+divs)>=0 && (elemCount-divs*divs+divs)<divs*divs*divs) {                                     
+      chosenElem= elemCount-divs*divs+divs;
      }
      else if (r==8 && (elemCount-divs*divs+1+divs)>=0 && (elemCount-divs*divs+1+divs)<divs*divs*divs) {                              
-      elemConc[elemCount-divs*divs+1+divs]= ((int)(elemConc[elemCount-divs*divs+1+divs]*(xLen*yLen*zLen)*fakeAvogadroNum)+pow(10,17))/(xLen*yLen*zLen*trueAvogadroNum);
-      elemConcMaster[elemCount-divs*divs+1+divs+(timePassed-1)*divs*divs*divs]=elemConc[elemCount-divs*divs+1+divs];
-
-      elemConc[elemCount]= (moleculeInCube-pow(10,17))/(xLen*yLen*zLen*trueAvogadroNum);
-      elemConcMaster[elemCount+(timePassed-1)*divs*divs*divs]=elemConc[elemCount];
+      chosenElem= elemCount-divs*divs+1+divs;
      }
      else if (r==9 && (elemCount-1-divs)>=0 && (elemCount-1-divs)<divs*divs*divs) {                                    
-      elemConc[elemCount-1-divs]= ((int)(elemConc[elemCount-1-divs]*(xLen*yLen*zLen)*fakeAvogadroNum)+pow(10,17))/(xLen*yLen*zLen*trueAvogadroNum);
-      elemConcMaster[elemCount-divs-1+(timePassed-1)*divs*divs*divs]=elemConc[elemCount-divs-1];
-
-      elemConc[elemCount]= (moleculeInCube-pow(10,17))/(xLen*yLen*zLen*trueAvogadroNum);
-      elemConcMaster[elemCount+(timePassed-1)*divs*divs*divs]=elemConc[elemCount];
+      chosenElem= elemCount-1-divs;
      }                                            
      else if (r==10 && (elemCount-divs)>=0 && (elemCount-divs)<divs*divs*divs) {                                    
-      elemConc[elemCount-divs]= ((int)(elemConc[elemCount-divs]*(xLen*yLen*zLen)*fakeAvogadroNum)+pow(10,17))/(xLen*yLen*zLen*trueAvogadroNum);
-      elemConcMaster[elemCount-divs+(timePassed-1)*divs*divs*divs]=elemConc[elemCount-divs];
-
-      elemConc[elemCount]= (moleculeInCube-pow(10,17))/(xLen*yLen*zLen*trueAvogadroNum);
-      elemConcMaster[elemCount+(timePassed-1)*divs*divs*divs]=elemConc[elemCount];
+      chosenElem= elemCount-divs;
      }
      else if (r==11 && (elemCount+1-divs)>=0 && (elemCount+1-divs)<divs*divs*divs) {                                    
-      elemConc[elemCount+1-divs]= ((int)(elemConc[elemCount+1-divs]*(xLen*yLen*zLen)*fakeAvogadroNum)+pow(10,17))/(xLen*yLen*zLen*trueAvogadroNum);
-      elemConcMaster[elemCount-divs+1+(timePassed-1)*divs*divs*divs]=elemConc[elemCount-divs+1];
-
-      elemConc[elemCount]= (moleculeInCube-pow(10,17))/(xLen*yLen*zLen*trueAvogadroNum);
-      elemConcMaster[elemCount+(timePassed-1)*divs*divs*divs]=elemConc[elemCount];
+      chosenElem= elemCount+1-divs;
      }
      else if (r==12 && (elemCount-1)>=0 && (elemCount-1)<divs*divs*divs) {                                    
-      elemConc[elemCount-1]= ((int)(elemConc[elemCount-1]*(xLen*yLen*zLen)*fakeAvogadroNum)+pow(10,17))/(xLen*yLen*zLen*trueAvogadroNum);
-      elemConcMaster[elemCount-1+(timePassed-1)*divs*divs*divs]=elemConc[elemCount-1];
-
-      elemConc[elemCount]= (moleculeInCube-pow(10,17))/(xLen*yLen*zLen*trueAvogadroNum);
-      elemConcMaster[elemCount+(timePassed-1)*divs*divs*divs]=elemConc[elemCount];
+      chosenElem= elemCount-1;
      }                 
      else if (r==14 && (elemCount+1)>=0 && (elemCount+1)<divs*divs*divs) {                                    
-      elemConc[elemCount+1]= ((int)(elemConc[elemCount+1]*(xLen*yLen*zLen)*fakeAvogadroNum)+pow(10,17))/(xLen*yLen*zLen*trueAvogadroNum);
-      elemConcMaster[elemCount+1+(timePassed-1)*divs*divs*divs]=elemConc[elemCount+1];
-
-      elemConc[elemCount]= (moleculeInCube-pow(10,17))/(xLen*yLen*zLen*trueAvogadroNum);
-      elemConcMaster[elemCount+(timePassed-1)*divs*divs*divs]=elemConc[elemCount];
+      chosenElem= elemCount+1;
      }
      else if (r==15 && (elemCount+divs-1)>=0 && (elemCount+divs-1)<divs*divs*divs) {                                    
-      elemConc[elemCount+divs-1]= ((int)(elemConc[elemCount+divs-1]*(xLen*yLen*zLen)*fakeAvogadroNum)+pow(10,17))/(xLen*yLen*zLen*trueAvogadroNum);
-      elemConcMaster[elemCount+divs-1+(timePassed-1)*divs*divs*divs]=elemConc[elemCount+divs-1];
-
-      elemConc[elemCount]= (moleculeInCube-pow(10,17))/(xLen*yLen*zLen*trueAvogadroNum);
-      elemConcMaster[elemCount+(timePassed-1)*divs*divs*divs]=elemConc[elemCount];
+      chosenElem= elemCount+divs-1;
      }
      else if (r==16 && (elemCount+divs)>=0 && (elemCount+divs)<divs*divs*divs) {                                    
-      elemConc[elemCount+divs]= ((int)(elemConc[elemCount+divs]*(xLen*yLen*zLen)*fakeAvogadroNum)+pow(10,17))/(xLen*yLen*zLen*trueAvogadroNum);
-      elemConcMaster[elemCount+divs+(timePassed-1)*divs*divs*divs]=elemConc[elemCount+divs];
-
-      elemConc[elemCount]= (moleculeInCube-pow(10,17))/(xLen*yLen*zLen*trueAvogadroNum);
-      elemConcMaster[elemCount+(timePassed-1)*divs*divs*divs]=elemConc[elemCount];
+      chosenElem= elemCount+divs;
      }
      else if (r==17 && (elemCount+divs+1)>=0 && (elemCount+divs+1)<divs*divs*divs) {                                    
-      elemConc[elemCount+divs+1]= ((int)(elemConc[elemCount+divs+1]*(xLen*yLen*zLen)*fakeAvogadroNum)+pow(10,17))/(xLen*yLen*zLen*trueAvogadroNum);
-      elemConcMaster[elemCount+divs+1+(timePassed-1)*divs*divs*divs]=elemConc[elemCount+divs+1];
-
-      elemConc[elemCount]= (moleculeInCube-pow(10,17))/(xLen*yLen*zLen*trueAvogadroNum);
-      elemConcMaster[elemCount+(timePassed-1)*divs*divs*divs]=elemConc[elemCount];
+      chosenElem= elemCount+divs+1;
      }
      else if (r==18 && (elemCount-1-divs+divs*divs)>=0 && (elemCount-1-divs+divs*divs)<divs*divs*divs) {                                    
-      elemConc[elemCount-1-divs+divs*divs]= ((int)(elemConc[elemCount-1-divs+divs*divs]*(xLen*yLen*zLen)*fakeAvogadroNum)+pow(10,17))/(xLen*yLen*zLen*trueAvogadroNum);
-      elemConcMaster[elemCount-1-divs+divs*divs+(timePassed-1)*divs*divs*divs]=elemConc[elemCount-1-divs+divs*divs];
-
-      elemConc[elemCount]= (moleculeInCube-pow(10,17))/(xLen*yLen*zLen*trueAvogadroNum);
-      elemConcMaster[elemCount+(timePassed-1)*divs*divs*divs]=elemConc[elemCount];
+      chosenElem= elemCount-1-divs+divs*divs;
      }
      else if (r==19 && (elemCount+divs*divs-divs)>=0 && (elemCount+divs*divs-divs)<divs*divs*divs) {                                    
-      elemConc[elemCount+divs*divs-divs]= ((int)(elemConc[elemCount-divs+divs*divs]*(xLen*yLen*zLen)*fakeAvogadroNum)+pow(10,17))/(xLen*yLen*zLen*trueAvogadroNum);
-      elemConcMaster[elemCount-divs+divs*divs+(timePassed-1)*divs*divs*divs]=elemConc[elemCount-divs+divs*divs];
-
-      elemConc[elemCount]= (moleculeInCube-pow(10,17))/(xLen*yLen*zLen*trueAvogadroNum);
-      elemConcMaster[elemCount+(timePassed-1)*divs*divs*divs]=elemConc[elemCount];
+      chosenElem= elemCount+divs*divs-divs;
      }
      else if (r==20 && (elemCount+1+divs*divs-divs)>=0 && (elemCount+1+divs*divs-divs)<divs*divs*divs) {                                   
-      elemConc[elemCount+1+divs*divs-divs]= ((int)(elemConc[elemCount+1-divs+divs*divs]*(xLen*yLen*zLen)*fakeAvogadroNum)+pow(10,17))/(xLen*yLen*zLen*trueAvogadroNum);
-      elemConcMaster[elemCount-divs+divs*divs+1+(timePassed-1)*divs*divs*divs]= elemConc[elemCount-divs+divs*divs+1];
-
-      elemConc[elemCount]= (moleculeInCube-pow(10,17))/(xLen*yLen*zLen*trueAvogadroNum);
-      elemConcMaster[elemCount+(timePassed-1)*divs*divs*divs]=elemConc[elemCount];
+      chosenElem= elemCount+1+divs*divs-divs; 
      }
      else if (r==21 && (elemCount-1+divs*divs)>=0 && (elemCount-1+divs*divs)<divs*divs*divs) {                                    
-      elemConc[elemCount-1+divs*divs]= ((int)(elemConc[elemCount-1+divs*divs]*(xLen*yLen*zLen)*fakeAvogadroNum)+pow(10,17))/(xLen*yLen*zLen*trueAvogadroNum);
-      elemConcMaster[elemCount-1+divs*divs+(timePassed-1)*divs*divs*divs]=elemConc[elemCount-1+divs*divs];
-
-      elemConc[elemCount]= (moleculeInCube-pow(10,17))/(xLen*yLen*zLen*trueAvogadroNum);
-      elemConcMaster[elemCount+(timePassed-1)*divs*divs*divs]=elemConc[elemCount];
+      chosenElem= elemCount-1+divs*divs;  
      }
-     else if (r==22 && (elemCount+divs*divs>=0) && (elemCount+divs*divs<divs*divs*divs)) {                                    
-      elemConc[elemCount+divs*divs]= ((int)(elemConc[elemCount+divs*divs]*(xLen*yLen*zLen)*fakeAvogadroNum)+pow(10,17))/(xLen*yLen*zLen*trueAvogadroNum);
-      elemConcMaster[elemCount+divs*divs+(timePassed-1)*divs*divs*divs]= elemConc[elemCount+divs*divs];
-
-      elemConc[elemCount]= (moleculeInCube-pow(10,17))/(xLen*yLen*zLen*trueAvogadroNum);
-      elemConcMaster[elemCount+(timePassed-1)*divs*divs*divs]=elemConc[elemCount];
+     else if (r==22 && (elemCount+divs*divs>=0) && (elemCount+divs*divs)<divs*divs*divs) {                                    
+      chosenElem= elemCount+divs*divs;
      }                               
      else if (r==23 && (elemCount+divs*divs+1)>=0 && (elemCount+divs*divs+1)<divs*divs*divs) {                                   
-      elemConc[elemCount+divs*divs+1]= ((int)(elemConc[elemCount+divs*divs+1]*(xLen*yLen*zLen)*fakeAvogadroNum)+pow(10,17))/(xLen*yLen*zLen*trueAvogadroNum);
-      elemConcMaster[elemCount+divs*divs+1+(timePassed-1)*divs*divs*divs]=elemConc[elemCount+divs*divs+1];
-
-      elemConc[elemCount]= (moleculeInCube-pow(10,17))/(xLen*yLen*zLen*trueAvogadroNum);
-      elemConcMaster[elemCount+(timePassed-1)*divs*divs*divs]=elemConc[elemCount];
+      chosenElem= elemCount+divs*divs+1;
      }
-     else if (r==24 && (elemCount-divs+divs*divs+1)>=0 && (elemCount-divs+divs*divs+1)<divs*divs*divs) {                                    
-      elemConc[elemCount-divs+divs*divs+1]= ((int)(elemConc[elemCount-divs+divs*divs+1]*(xLen*yLen*zLen)*fakeAvogadroNum)+pow(10,17))/(xLen*yLen*zLen*trueAvogadroNum);
-      elemConcMaster[elemCount-divs+divs*divs+1+(timePassed-1)*divs*divs*divs]=elemConc[elemCount-divs+divs*divs+1];
-
-      elemConc[elemCount]= (moleculeInCube-pow(10,17))/(xLen*yLen*zLen*trueAvogadroNum);
-      elemConcMaster[elemCount+(timePassed-1)*divs*divs*divs]=elemConc[elemCount];
+     else if (r==24 && (elemCount+divs+divs*divs-1)>=0 && (elemCount+divs+divs*divs-1)<divs*divs*divs) {                                    
+      chosenElem= elemCount-divs+divs*divs+1;
      }
      else if (r==25 && (elemCount+divs+divs*divs)>=0 && (elemCount+divs+divs*divs)<divs*divs*divs) {      
-      elemConc[elemCount+divs+divs*divs]= ((int)(elemConc[elemCount+divs+divs*divs]*(xLen*yLen*zLen)*fakeAvogadroNum)+pow(10,17))/(xLen*yLen*zLen*trueAvogadroNum);
-      elemConcMaster[elemCount+divs+divs*divs+(timePassed-1)*divs*divs*divs]= elemConc[elemCount+divs+divs*divs];
-
-      elemConc[elemCount]= (moleculeInCube-pow(10,17))/(xLen*yLen*zLen*trueAvogadroNum);
-      elemConcMaster[elemCount+(timePassed-1)*divs*divs*divs]=elemConc[elemCount];
+      chosenElem= elemCount+divs+divs*divs; 
      }
      else if (r==26 && (elemCount+divs+1+divs*divs)>=0 && (elemCount+divs+1+divs*divs)<divs*divs*divs) {                              
-      elemConc[elemCount+divs+1+divs*divs]= ((int)(elemConc[elemCount+divs+1+divs*divs]*(xLen*yLen*zLen)*fakeAvogadroNum)+pow(10,17))/(xLen*yLen*zLen*trueAvogadroNum);
-      elemConcMaster[elemCount+1+divs+divs*divs+(timePassed-1)*divs*divs*divs]= elemConc[elemCount+divs+1+divs*divs];
-
-      elemConc[elemCount]= (moleculeInCube-pow(10,17))/(xLen*yLen*zLen*trueAvogadroNum);
-      elemConcMaster[elemCount+(timePassed-1)*divs*divs*divs]=elemConc[elemCount];
+      chosenElem= elemCount+divs+1+divs*divs; 
      }
-     else if (r==13){   //for r=13, where the molecule stays put                                  
-      elemConc[elemCount]= elemConc[elemCount]; 
-      elemConcMaster[elemCount+(timePassed-1)*divs*divs*divs]=elemConc[elemCount];
+     else if (r==13){   //for r=13, the molecule stays put                                  
+      chosenElem= elemCount; 
      }
-                                                                                                             
-/*  
-    //can also do it for the entire front face of the inner cube.
-    if (elemCount<divs*divs+divs*divs && elemConcMaster[elemCount]==0 && timePassed==totTime) {
-     frontFaceCounter+=1;
-    moleculeFFCounter+=elemConcMaster[elemCount+(timePassed-1)*divs*divs*divs]*(xLen*yLen*zLen);
-    }              */
-
-                
-   } //end bracket for the molecule count per elem 
+                        
+   //for the chosen elem, update conc for the current and master array.   
+   elemConc[chosenElem]= (elemConc[chosenElem]*elemVol*truAvoNum+followerMolecules)/(elemVol*truAvoNum);
+   elemConcMaster[chosenElem+(timePassed-1)*divs*divs*divs]= elemConc[chosenElem];  
  
-//    cout << "time: " << timePassed << " elem:" << elemCount << " conc:" << elemConc[elemCount] << endl; 
+//   cout << timePassed << " " << elemCount << " chosen elem conc: " << elemConc[chosenElem] << endl;   
+  
+   //adjust elem13 accordingly 
+   elemConc[elemCount]= (elemConc[elemCount]*elemVol*truAvoNum-followerMolecules)/(elemVol*truAvoNum);
+   elemConcMaster[elemCount+(timePassed-1)*divs*divs*divs]= elemConc[elemCount];  
 
+//   cout << timePassed << " " << elemCount << " elem 0 conc: " << elemConc[elemCount] << endl;
+   //the formula above should work for r==13 as well; we get a net 0.
+   
+   } //end bracket for the molecule count per elem 
+
+// cout << "time: " << timePassed << " elem:" << elemCount << " conc:" << elemConc[elemCount] << " no. moleculeGrps:" << moleculeGrpInCube << endl; 
 
   //want to calculate the total amount of water passing into the LAB layer
   //so we sum up the amount of water in the inner cube(s)
   //just for a quick calculation, I'll do 5 layers so the inner cube
   //is just the one cube, cube number 62. 
   //I'll also only set the front face to be maxConc, else is 0.
-  if (elemCount==62){
-   cout << "time passed:" << timePassed << " element conc:" << elemConc[elemCount] <<endl;  
-  }     
+   if (elemCount==62) { 
+    cout << "time passed:" << timePassed << " element conc:" << elemConc[elemCount] <<endl;  
+   }     
      
 
 /*  //can also do it for the entire front face of the inner cube.
@@ -562,10 +481,10 @@ void diffusionmodel3dnewarray() {
     gr1->Draw("AC");
    }  */
 
- 
    } //end bracket for the 2nd 0<elemCount<divs*divs*divs
    
   } //end bracket for the if statement separating 1st layer from rest
+  
 
  } // end bracket for total time                 
 // cout << "it works, yan." << endl; 
